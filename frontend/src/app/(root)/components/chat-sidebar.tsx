@@ -23,14 +23,14 @@ export function ChatSidebar({ collapsed, onToggleCollapse, activeChat, onChatSel
             id: 1,
             title: "Nextjs App Router Caching Issues",
             date: "Today",
-            preview: "I'm having issues with caching in Next.js App Router",
+            preview: "Im having issues with caching in Next.js App Router",
             timestamp: "2m ago",
         },
         {
             id: 2,
             title: "Optimistic updates not shown in UI",
             date: "Last 7 Days",
-            preview: "My optimistic updates aren't showing in the UI",
+            preview: "My optimistic updates arent showing in the UI",
             timestamp: "1h ago",
         },
         {
@@ -157,7 +157,7 @@ export function ChatSidebar({ collapsed, onToggleCollapse, activeChat, onChatSel
                 {!collapsed ? (
                     <>
                         {Object.keys(groupedConversations).length === 0 ? (
-                            <div className="px-4 py-8 text-center text-gray-400 text-sm">No chats found matching "{searchQuery}"</div>
+                            <div className="px-4 py-8 text-center text-gray-400 text-sm">No chats found matching &quot;{searchQuery}&quot;</div>
                         ) : (
                             Object.entries(groupedConversations).map(([date, conversations]) => (
                                 <div key={date} className="mb-1">

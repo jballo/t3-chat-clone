@@ -5,8 +5,19 @@ import { Search, ChevronLeft, Filter, Eye, Globe, FileText, Wand2, ChevronDown }
 import { Input } from "@/atoms/input"
 import { Button } from "@/atoms/button"
 
+interface Model {
+    id: string
+    name: string
+    icon: string
+    capabilities: string[]
+    color: string
+    isPro?: boolean
+    isDegraded?: boolean
+    subName?: string
+}
+
 interface ModelSelectorProps {
-    onSelect: (model: any) => void
+    onSelect: (model: Model) => void
     onClose: () => void
 }
 

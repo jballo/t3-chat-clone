@@ -25,8 +25,8 @@ export function ChatMain({
     selectedModel,
     onModelSelectorOpen,
     activeChat,
-    sidebarCollapsed,
-    onToggleSidebar,
+    // sidebarCollapsed,
+    // onToggleSidebar,
 }: ChatMainProps) {
     const router = useRouter()
     const chatData = {
@@ -141,7 +141,7 @@ export function ChatMain({
             {/* Chat messages */}
             <div className="flex-1 overflow-y-auto p-6">
                 <div className="max-w-4xl mx-auto">
-                    {messages.map((msg, index) => (
+                    {messages.map((msg) => (
                         <div key={msg.id} className={`mb-8 ${!msg.isUser ? "first:mt-12" : ""}`}>
                             {!msg.isUser && msg.id === 1 && (
                                 <div className="text-center mb-12">

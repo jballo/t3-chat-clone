@@ -5,9 +5,27 @@ import { ChatSidebar } from "./chat-sidebar"
 import { ModelSelector } from "./model-selector"
 import { ChatMain } from "./chat-main"
 
+interface Model {
+    name: string;
+    type: string;
+    icon: string;
+}
+
+// Interface for the model coming from ModelSelector
+interface ModelSelectorModel {
+    id: string;
+    name: string;
+    icon: string;
+    capabilities: string[];
+    color: string;
+    isPro?: boolean;
+    isDegraded?: boolean;
+    subName?: string;
+}
+
 export function ChatInterface() {
     const [showModelSelector, setShowModelSelector] = useState(false)
-    const [selectedModel, setSelectedModel] = useState({
+    const [selectedModel, setSelectedModel] = useState<Model>({
         name: "Claude 4 Sonnet",
         type: "Reasoning",
         icon: "AI",
@@ -27,8 +45,12 @@ export function ChatInterface() {
             <div className="flex-1 flex flex-col">
                 {showModelSelector ? (
                     <ModelSelector
-                        onSelect={(model) => {
-                            setSelectedModel(model)
+                        onSelect={(model: ModelSelectorModel) => {
+                            setSelectedModel({
+                                name: model.name,
+                                type: "Reasoning", // You might want to derive this from model.capabilities
+                                icon: model.icon,
+                            })
                             setShowModelSelector(false)
                         }}
                         onClose={() => setShowModelSelector(false)}
