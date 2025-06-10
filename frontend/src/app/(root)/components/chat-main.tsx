@@ -2,12 +2,15 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Paperclip, HighlighterIcon as HighlightIcon, Code, BookOpen, Sparkles, Settings, Send } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/atoms/button"
 import { Input } from "@/atoms/input"
 import { ModelDropdown } from "./model-dropdown"
+import { Id } from "../../../../convex/_generated/dataModel"
+import { useQuery } from "convex/react"
+import { api } from "../../../../convex/_generated/api"
 
 interface ChatMainProps {
     selectedModel: {
@@ -16,9 +19,38 @@ interface ChatMainProps {
         icon: string
     }
     onModelSelectorOpen: () => void
-    activeChat: number | null
+    activeChat: Id<"chats"> | null
     sidebarCollapsed: boolean
     onToggleSidebar: () => void
+}
+
+
+export function ChatMessages({ activeChat }: { activeChat: Id<"chats"> }) {
+    const messages = useQuery(api.chat.getMessages, { conversationId: activeChat.toString() }) || [];
+
+    return (
+        <div className="flex-1 overflow-y-auto p-6">
+            <div className="max-w-4xl mx-auto">
+                {messages.map((msg) => (
+                    <div key={msg._id} className="mb-8">
+                        {msg.type === "assistant" ? (
+                            <div className="flex justify-start">
+                                <div className="max-w-[80%] bg-[#2a2a2a] text-white rounded-2xl rounded-bl-md px-4 py-3">
+                                    {msg.message}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="flex justify-end">
+                                <div className="max-w-[80%] bg-[#3a1a2f] text-white rounded-2xl rounded-br-md px-4 py-3">
+                                    {msg.message}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
 }
 
 export function ChatMain({
@@ -29,57 +61,11 @@ export function ChatMain({
     // onToggleSidebar,
 }: ChatMainProps) {
     const router = useRouter()
-    const chatData = {
-        1: {
-            title: "Nextjs App Router Caching Issues",
-            messages: [
-                { id: 1, content: "I'm having issues with caching in Next.js App Router", isUser: true },
-                {
-                    id: 2,
-                    content: "I can help you with Next.js App Router caching. What specific issues are you experiencing?",
-                    isUser: false,
-                },
-                { id: 3, content: "The pages aren't updating when I make changes to my data", isUser: true },
-                {
-                    id: 4,
-                    content: "This sounds like a cache invalidation issue. Are you using revalidateTag or revalidatePath?",
-                    isUser: false,
-                },
-            ],
-        },
-        2: {
-            title: "Optimistic updates not shown in UI",
-            messages: [
-                { id: 1, content: "My optimistic updates aren't showing in the UI", isUser: true },
-                {
-                    id: 2,
-                    content: "Let me help you troubleshoot optimistic updates. Are you using React's useOptimistic hook?",
-                    isUser: false,
-                },
-            ],
-        },
-    }
 
     const [message, setMessage] = useState("")
-    const [messages, setMessages] = useState(
-        activeChat && chatData[activeChat as keyof typeof chatData]
-            ? chatData[activeChat as keyof typeof chatData].messages
-            : [{ id: 1, content: "How can I help you, Jonathan?", isUser: false }],
-    )
-
-    useEffect(() => {
-        if (activeChat && chatData[activeChat as keyof typeof chatData]) {
-            setMessages(chatData[activeChat as keyof typeof chatData].messages)
-        } else {
-            setMessages([{ id: 1, content: "How can I help you, Jonathan?", isUser: false }])
-        }
-    }, [activeChat])
 
     const handleSendMessage = () => {
-        if (message.trim()) {
-            setMessages([...messages, { id: Date.now(), content: message, isUser: true }])
-            setMessage("")
-        }
+
     }
 
     const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -99,9 +85,7 @@ export function ChatMain({
             <div className="flex items-center justify-between p-4 border-b border-[#2a2a2a] bg-[#1a1a1a]">
                 <div className="flex items-center gap-3">
                     <h2 className="text-white font-semibold text-lg">
-                        {activeChat && chatData[activeChat as keyof typeof chatData]
-                            ? chatData[activeChat as keyof typeof chatData].title
-                            : "Chat"}
+                        Chat
                     </h2>
                 </div>
                 <div className="flex items-center gap-2">
@@ -139,36 +123,11 @@ export function ChatMain({
             </div>
 
             {/* Chat messages */}
-            <div className="flex-1 overflow-y-auto p-6">
-                <div className="max-w-4xl mx-auto">
-                    {messages.map((msg) => (
-                        <div key={msg.id} className={`mb-8 ${!msg.isUser ? "first:mt-12" : ""}`}>
-                            {!msg.isUser && msg.id === 1 && (
-                                <div className="text-center mb-12">
-                                    <h1 className="text-4xl font-bold text-white mb-4">How can I help you, Jonathan?</h1>
-                                    <p className="text-gray-400 text-lg">Choose a starting point or ask me anything</p>
-                                </div>
-                            )}
-                            {msg.isUser ? (
-                                <div className="flex justify-end">
-                                    <div className="max-w-[80%] bg-[#3a1a2f] text-white rounded-2xl rounded-br-md px-4 py-3">
-                                        {msg.content}
-                                    </div>
-                                </div>
-                            ) : (
-                                msg.id !== 1 && (
-                                    <div className="flex justify-start">
-                                        <div className="max-w-[80%] bg-[#2a2a2a] text-white rounded-2xl rounded-bl-md px-4 py-3">
-                                            {msg.content}
-                                        </div>
-                                    </div>
-                                )
-                            )}
-                        </div>
-                    ))}
-
-                    {/* Action buttons shown after initial greeting */}
-                    {messages.length === 1 && (
+            {activeChat ? (
+                <ChatMessages activeChat={activeChat} />
+            ) : (
+                <div className="flex-1 overflow-y-auto p-6">
+                    <div className="max-w-4xl mx-auto">
                         <div className="grid grid-cols-2 gap-4 mt-8 max-w-2xl mx-auto">
                             <Button
                                 variant="outline"
@@ -207,9 +166,9 @@ export function ChatMain({
                                 <span className="font-medium">Learn</span>
                             </Button>
                         </div>
-                    )}
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* Message input */}
             <div className="p-6 border-t border-[#2a2a2a] bg-[#1a1a1a]">
