@@ -91,7 +91,9 @@ export function ChatList({ collapsed, activeChat, onChatSelect }: { collapsed: b
                             <div className="flex flex-col">
                                 <div className="font-medium text-white mb-1 line-clamp-1">{conversation._id}</div>
                                 <div className="text-xs text-gray-400 line-clamp-1 mb-1">{conversation._id}</div>
-                                <div className="text-xs text-gray-500">{conversation._creationTime}</div>
+                                <div className="text-xs text-gray-500">
+                                    {new Date(conversation._creationTime).toLocaleString()}
+                                </div>
                             </div>
                         </div>
                     ))
