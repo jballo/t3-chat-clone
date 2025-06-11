@@ -1,29 +1,83 @@
 import { v } from "convex/values";
-import { internalAction, internalMutation, mutation, query } from "./_generated/server";
+import { action, internalAction, internalMutation, mutation, query } from "./_generated/server";
 import { generateText, streamText } from 'ai';
 import { createGroq } from '@ai-sdk/groq';
-import { internal } from "./_generated/api";
+import { createGoogleGenerativeAI } from '@ai-sdk/google';import { api, internal } from "./_generated/api";
 
-export const createChat = mutation({
-    args: {},
-    async handler(ctx) {
+interface Message {
+    role: 'user' | 'assistant' | 'system';
+    content: string;
+  }
+
+
+export const createChat = action({
+    args: {
+        message: v.string()
+    },
+    async handler(ctx, args) {
         const identity = await ctx.auth.getUserIdentity();
         if (identity === null) {
         throw new Error("Not authenticated");
         }
 
         const user_id = identity.subject;
-        console.log("user: ", user_id);
+        const userMessage = args.message;
 
-        const chat_id = await ctx.db.insert("chats", {  user_id: user_id});
-        console.log("chat_id: ", chat_id);
 
-        // // populate with at least one message
-        // const message_id = await ctx.db.insert("messages", {chat_id: chat_id, author_id: user_id, message: "How may I assist you?", type: "assistant"});
-        // console.log("message_id: ", message_id);
+        const google = createGoogleGenerativeAI({
+            baseURL: "https://generativelanguage.googleapis.com/v1beta",
+            apiKey: process.env.GEMINI_KEY
+        });
+
+        const messages: Message[] = [
+            { role: "system", content: "Generate a four word title that describes the message the user will provider. NO LONGER THAN FOUR WORDS"},
+            { role: "user", content: userMessage }
+
+        ]
+
+        const { text } = await generateText({
+            model: google('gemini-2.0-flash-lite'),
+            messages: messages
+        })
+
+        console.log("Title: ", text);
+
+        await ctx.runMutation(api.chat.saveChat, {
+            userId: user_id,
+            title: text,
+            userMessage: userMessage,
+        })
         
     },
 })
+
+export const saveChat = mutation({
+    args: {
+        userId: v.string(),
+        title: v.string(),
+        userMessage: v.string(),
+    },
+    handler: async (ctx, args) => {
+        const user_id = args.userId;
+        const generatedTitle = args.title;
+        const userMessage = args.userMessage;
+
+        const chat_id = await ctx.db.insert("chats", {
+            user_id: user_id,
+            title: generatedTitle
+        });
+        console.log("chat_id: ", chat_id);
+
+        // create the message for the new chat
+
+        await ctx.runMutation(api.chat.sendMessage, {
+            conversationId: chat_id,
+            userMessage: userMessage
+        });
+    }
+})
+
+
 
 export const sendMessage = mutation({
     args: {
@@ -196,6 +250,7 @@ export const getChats = query({
         const chats = await ctx.db
             .query("chats")
             .filter((q) => q.eq(q.field("user_id"), user_id))
+            .order("desc")
             .collect()
 
         console.log("Chats: ", chats);

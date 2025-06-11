@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Search, Settings, Plus } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/atoms/button"
@@ -21,6 +21,14 @@ export function ChatList({ collapsed, activeChat, onChatSelect }: { collapsed: b
     const [searchQuery, setSearchQuery] = useState("");
 
     const conversations = useQuery(api.chat.getChats) || [];
+
+
+    useEffect(() => {
+        console.log("New convo")
+        if (conversations.length > 0) {
+            onChatSelect(conversations[0]._id);
+        }
+    }, [conversations]);
 
 
     // // Filter conversations based on search query
@@ -89,8 +97,7 @@ export function ChatList({ collapsed, activeChat, onChatSelect }: { collapsed: b
                                 <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#8b5cf6] rounded-r-full" />
                             )}
                             <div className="flex flex-col">
-                                <div className="font-medium text-white mb-1 line-clamp-1">{conversation._id}</div>
-                                <div className="text-xs text-gray-400 line-clamp-1 mb-1">{conversation._id}</div>
+                                <div className="font-medium text-white mb-1 line-clamp-1">{conversation.title}</div>
                                 <div className="text-xs text-gray-500">
                                     {new Date(conversation._creationTime).toLocaleString()}
                                 </div>

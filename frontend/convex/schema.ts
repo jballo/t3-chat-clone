@@ -7,7 +7,8 @@ export default defineSchema({
         text: v.string(),
       }),
     chats: defineTable({ 
-        user_id: v.string() 
+        user_id: v.string(),
+        title: v.string(), 
     }),
     messages: defineTable({
         author_id: v.string(),

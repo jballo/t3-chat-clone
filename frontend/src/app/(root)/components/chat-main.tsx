@@ -9,7 +9,7 @@ import { Button } from "@/atoms/button"
 import { Input } from "@/atoms/input"
 import { ModelDropdown } from "./model-dropdown"
 import { Id } from "../../../../convex/_generated/dataModel"
-import { useConvexAuth, useMutation, useQuery } from "convex/react"
+import { useAction, useConvexAuth, useMutation, useQuery } from "convex/react"
 import { api } from "../../../../convex/_generated/api"
 
 interface ChatMainProps {
@@ -65,14 +65,22 @@ export function ChatMain({
 
     const [message, setMessage] = useState("")
     const sendMessage = useMutation(api.chat.sendMessage);
+    const createChat = useAction(api.chat.createChat);
 
     const handleSendMessage = () => {
-        if (isLoading || !isAuthenticated || !activeChat) return;
+        if (isLoading || !isAuthenticated) return;
 
-        sendMessage({
-            conversationId: activeChat,
-            userMessage: message
-        });
+        if (!activeChat) {
+            createChat({
+                message: message
+            })
+        } else {
+            sendMessage({
+                conversationId: activeChat,
+                userMessage: message
+            });
+        }
+
         setMessage("");
     }
 
