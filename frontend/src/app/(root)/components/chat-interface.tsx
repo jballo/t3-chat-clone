@@ -4,6 +4,7 @@ import { useState } from "react"
 import { ChatSidebar } from "./chat-sidebar"
 import { ModelSelector } from "./model-selector"
 import { ChatMain } from "./chat-main"
+import { Id } from "../../../../convex/_generated/dataModel"
 
 interface Model {
     name: string;
@@ -32,7 +33,7 @@ export function ChatInterface() {
     })
 
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-    const [activeChat, setActiveChat] = useState<number | null>(null)
+    const [activeChat, setActiveChat] = useState<Id<"chats"> | null>(null)
 
     return (
         <>
