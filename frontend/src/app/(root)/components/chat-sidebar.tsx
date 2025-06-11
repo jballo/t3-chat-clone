@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Search, Settings, Plus } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/atoms/button"
@@ -31,16 +31,12 @@ export function ChatList({ collapsed, activeChat, onChatSelect }: { collapsed: b
     }, [conversations]);
 
 
-    // // Filter conversations based on search query
-    // const filteredConversations = useMemo(() => {
-    //     if (!searchQuery.trim()) return conversations
+    // Filter conversations based on search query
+    const filteredConversations = useMemo(() => {
+        if (!searchQuery.trim()) return conversations
 
-    //     return conversations?.filter(
-    //         (conversation) =>
-    //             conversation.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    //             conversation.preview.toLowerCase().includes(searchQuery.toLowerCase()),
-    //     );
-    // }, [searchQuery])
+        return conversations?.filter((conversation) => conversation.title.toLowerCase().includes(searchQuery.toLowerCase()));
+    }, [searchQuery])
 
     // // Group filtered conversations by date
     // const groupedConversations = useMemo(() => {
@@ -86,7 +82,7 @@ export function ChatList({ collapsed, activeChat, onChatSelect }: { collapsed: b
 
             <div className="flex-1 overflow-y-auto">
                 {!collapsed ? (
-                    conversations.map((conversation) => (
+                    filteredConversations.map((conversation) => (
                         <div
                             key={conversation._id}
                             onClick={() => onChatSelect(conversation._id)}
