@@ -1,5 +1,8 @@
 import { v } from "convex/values";
 import { internalAction, internalMutation, mutation, query } from "./_generated/server";
+import { generateText } from 'ai';
+import { createGroq } from '@ai-sdk/groq';
+import { internal } from "./_generated/api";
 
 export const createChat = mutation({
     args: {},
@@ -24,15 +27,103 @@ export const createChat = mutation({
 
 export const sendMessage = mutation({
     args: {
-        conversationId: v.string(),
+        conversationId: v.id("chats"),
         userMessage: v.string(),
     },
     handler: async (ctx, args) => {
-        // save usefr message
+        // save user message        
+        const identity = await ctx.auth.getUserIdentity();
+        if (identity === null) {
+        throw new Error("Not authenticated");
+        }
+        const user_id = identity.subject;
+        const msg = args.userMessage;
+        const conversation_id = args.conversationId;
+        console.log("Message: ", msg);
 
-        //  create empty assistant message
+        await ctx.db.insert("messages", {
+            author_id: user_id,
+            chat_id: conversation_id,
+            message: msg,
+            type: "user"
+        });
+
+        // const groq = createGroq({
+        //     baseURL: 'https://api.groq.com/openai/v1',
+        //     apiKey: process.env.GROQ_KEY
+        // });
+
+        // const { text } = await generateText({
+        //     model: groq('llama-3.1-8b-instant'),
+        //     system: 'You are a friendly assistant!',
+        //     prompt: msg
+        // });
+
+        // console.log("Text: ", text);
+        
+        // //  create empty assistant message
+
+        // await ctx.db.insert("messages", {
+        //     author_id: user_id,
+        //     chat_id: conversation_id,
+        //     message: text,
+        //     type: "assistant"
+        await ctx.scheduler.runAfter(0, internal.chat.singleResponse, {
+            conversationId: conversation_id,
+            userMessage: msg,
+            userId: user_id
+        });
 
         // start streaming
+    }
+})
+
+export const singleResponse = internalAction({
+    args: {
+        userId: v.string(),
+        conversationId: v.id("chats"),
+        userMessage: v.string(),
+    },
+    handler: async (ctx, args) => {
+        const user_id = args.userId;
+        const msg = args.userMessage;
+        const conversation_id = args.conversationId;
+
+        const groq = createGroq({
+            baseURL: 'https://api.groq.com/openai/v1',
+            apiKey: process.env.GROQ_KEY
+        });
+
+        const { text } = await generateText({
+            model: groq('llama-3.1-8b-instant'),
+            system: 'You are a friendly assistant!',
+            prompt: msg
+        });
+
+        console.log("Text: ", text);
+
+        // call a mutation to save the response
+        await ctx.runMutation(internal.chat.saveAssistantMessage, {
+            authorId: user_id,
+            chatId: conversation_id,
+            message: text
+        })
+    }
+})
+
+export const saveAssistantMessage = internalMutation({
+    args: {
+        authorId: v.string(),
+        chatId: v.id("chats"),
+        message: v.string()
+    },
+    handler: async(ctx, args) => {
+        return await ctx.db.insert("messages", {
+            author_id: args.authorId,
+            chat_id: args.chatId,
+            message: args.message,
+            type: "assistant"
+        });
     }
 })
 
@@ -42,6 +133,8 @@ export const stream = internalAction({
         userMessage: v.string(),
     },
     handler: async (ctx, args) => {
+
+        
         // get llm response w/ streaming
 
         // while reciving chunks add it to a string
@@ -93,7 +186,7 @@ export const getChats = query({
 
 
 export const getMessages = query({
-    args: {conversationId: v.string()},
+    args: {conversationId: v.id("chats")},
     handler: async (ctx, args) => {
         // return all the messages for the appropirate conversation
         const conversation_id = args.conversationId;

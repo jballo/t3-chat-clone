@@ -9,7 +9,7 @@ import { Button } from "@/atoms/button"
 import { Input } from "@/atoms/input"
 import { ModelDropdown } from "./model-dropdown"
 import { Id } from "../../../../convex/_generated/dataModel"
-import { useQuery } from "convex/react"
+import { useConvexAuth, useMutation, useQuery } from "convex/react"
 import { api } from "../../../../convex/_generated/api"
 
 interface ChatMainProps {
@@ -26,7 +26,7 @@ interface ChatMainProps {
 
 
 export function ChatMessages({ activeChat }: { activeChat: Id<"chats"> }) {
-    const messages = useQuery(api.chat.getMessages, { conversationId: activeChat.toString() }) || [];
+    const messages = useQuery(api.chat.getMessages, { conversationId: activeChat }) || [];
 
     return (
         <div className="flex-1 overflow-y-auto p-6">
@@ -60,12 +60,20 @@ export function ChatMain({
     // sidebarCollapsed,
     // onToggleSidebar,
 }: ChatMainProps) {
-    const router = useRouter()
+    const router = useRouter();
+    const { isLoading, isAuthenticated } = useConvexAuth();
 
     const [message, setMessage] = useState("")
+    const sendMessage = useMutation(api.chat.sendMessage);
 
     const handleSendMessage = () => {
+        if (isLoading || !isAuthenticated || !activeChat) return;
 
+        sendMessage({
+            conversationId: activeChat,
+            userMessage: message
+        });
+        setMessage("");
     }
 
     const handleKeyPress = (e: React.KeyboardEvent) => {
