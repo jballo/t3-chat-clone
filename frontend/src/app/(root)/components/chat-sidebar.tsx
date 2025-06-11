@@ -33,10 +33,10 @@ export function ChatList({ collapsed, activeChat, onChatSelect }: { collapsed: b
 
     // Filter conversations based on search query
     const filteredConversations = useMemo(() => {
-        if (!searchQuery.trim()) return conversations
+        if (!searchQuery.trim()) return conversations;
 
         return conversations?.filter((conversation) => conversation.title.toLowerCase().includes(searchQuery.toLowerCase()));
-    }, [searchQuery])
+    }, [searchQuery, conversations])
 
     // // Group filtered conversations by date
     // const groupedConversations = useMemo(() => {
@@ -102,17 +102,24 @@ export function ChatList({ collapsed, activeChat, onChatSelect }: { collapsed: b
                     ))
                 ) : (
                     <div className="flex flex-col items-center gap-2 p-2">
-                        {conversations.slice(0, 8).map((conversation) => (
+                        <button
+                            onClick={() => onChatSelect(null)}
+                            className={`w-12 h-12 rounded-xl flex items-center justify-center text-xs font-bold transition-colors duration-150 text-white bg-[#3a1a2f] hover:bg-[#4a2a3f]`}
+                        >
+                            <Plus className="w-4 h-4" />
+                        </button>
+                        <br />
+                        {filteredConversations.slice(0, 8).map((conversation) => (
                             <button
                                 key={conversation._id}
                                 onClick={() => onChatSelect(conversation._id)}
                                 className={`w-12 h-12 rounded-xl flex items-center justify-center text-xs font-bold transition-colors duration-150 ${activeChat === conversation._id
-                                    ? "bg-[#3a1a2f] text-white"
+                                    ? "bg-[#2a1a2f] text-white"
                                     : "bg-[#1e1e1e] text-gray-400 hover:bg-[#2a2a2a] hover:text-white"
                                     }`}
-                                title={conversation._id.toString()}
+                                title={conversation.title}
                             >
-                                {conversation._id.toString().slice(0, 2).toUpperCase()}
+                                {conversation.title.slice(0, 2).toUpperCase()}
                             </button>
                         ))}
                     </div>
@@ -123,60 +130,7 @@ export function ChatList({ collapsed, activeChat, onChatSelect }: { collapsed: b
 }
 
 export function ChatSidebar({ collapsed, onToggleCollapse, activeChat, onChatSelect }: ChatSidebarProps) {
-    const router = useRouter()
-
-    // const conversations = [
-    //     {
-    //         id: 1,
-    //         title: "Nextjs App Router Caching Issues",
-    //         date: "Today",
-    //         preview: "Im having issues with caching in Next.js App Router",
-    //         timestamp: "2m ago",
-    //     },
-    //     {
-    //         id: 2,
-    //         title: "Optimistic updates not shown in UI",
-    //         date: "Last 7 Days",
-    //         preview: "My optimistic updates arent showing in the UI",
-    //         timestamp: "1h ago",
-    //     },
-    //     {
-    //         id: 3,
-    //         title: "Nextjs App Router Like Button",
-    //         date: "Last 7 Days",
-    //         preview: "How to implement a like button with optimistic updates",
-    //         timestamp: "3h ago",
-    //     },
-    //     {
-    //         id: 4,
-    //         title: "Responsive Image Sizing in Next",
-    //         date: "Last 7 Days",
-    //         preview: "Best practices for responsive images",
-    //         timestamp: "1d ago",
-    //     },
-    //     {
-    //         id: 5,
-    //         title: "Optimistic UI Updates for Social",
-    //         date: "Last 7 Days",
-    //         preview: "Building social features with optimistic updates",
-    //         timestamp: "2d ago",
-    //     },
-    //     {
-    //         id: 6,
-    //         title: "Nextjs App Router SVG Folder",
-    //         date: "Last 7 Days",
-    //         preview: "Organizing SVG assets in Next.js",
-    //         timestamp: "3d ago",
-    //     },
-    //     {
-    //         id: 7,
-    //         title: "Nextjs Edge Runtime Explanation",
-    //         date: "Last 7 Days",
-    //         preview: "Understanding Edge Runtime in Next.js",
-    //         timestamp: "4d ago",
-    //     },
-    // ]
-
+    const router = useRouter();
 
     const navigateToSettings = () => {
         router.push("/settings")
