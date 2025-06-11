@@ -14,5 +14,6 @@ export default defineSchema({
         chat_id: v.id("chats"),
         message: v.string(),
         type: v.string(),
+        isComplete: v.boolean(),
     }),
 });
