@@ -72,7 +72,7 @@ export function ChatMessages({ messages }: ChatMessagesProps) {
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({
-      behavior: "auto", // Change from "smooth" to "auto" to prevent scroll animation conflicts
+      behavior: "smooth", // Change from "smooth" to "auto" to prevent scroll animation conflicts
       block: "end",
     });
   };
