@@ -253,3 +253,27 @@ export const getMessages = query({
     return messages;
   },
 });
+
+
+
+export const deleteChat = mutation({
+  args: { conversationId: v.id("chats") },
+  handler: async (ctx, args) => {
+    const conversation_id = args.conversationId;
+
+    // query messages for chat
+
+    const messages = await ctx.db
+      .query("messages")
+      .filter((q) => q.eq(q.field("chat_id"), conversation_id))
+      .collect();
+
+    // delete chat messsages for appropriate chat
+    for (const msg of messages) {
+      await ctx.db.delete(msg._id);
+    }
+
+    // delete chat
+    await ctx.db.delete(conversation_id);
+  }
+})

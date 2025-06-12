@@ -1,12 +1,12 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { Search, Settings, Plus } from "lucide-react"
+import { Search, Settings, Plus, Trash } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/atoms/button"
 import { Input } from "@/atoms/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/atoms/avatar"
-import { Authenticated, Unauthenticated, useQuery } from "convex/react"
+import { Authenticated, Unauthenticated, useMutation, useQuery } from "convex/react"
 import { api } from "../../../../convex/_generated/api"
 import { Id } from "../../../../convex/_generated/dataModel"
 
@@ -21,12 +21,15 @@ export function ChatList({ collapsed, activeChat, onChatSelect }: { collapsed: b
     const [searchQuery, setSearchQuery] = useState("");
 
     const conversations = useQuery(api.chat.getChats) || [];
+    const deleteChat = useMutation(api.chat.deleteChat);
 
 
     useEffect(() => {
         console.log("New convo")
         if (conversations.length > 0) {
             onChatSelect(conversations[0]._id);
+        } else {
+            onChatSelect(null);
         }
     }, [conversations]);
 
@@ -52,6 +55,10 @@ export function ChatList({ collapsed, activeChat, onChatSelect }: { collapsed: b
     //     )
     // }, [filteredConversations])
 
+
+    const handleDeleteChat = (id: Id<"chats">) => {
+        deleteChat({ conversationId: id });
+    }
 
     return (
         <>
@@ -92,11 +99,16 @@ export function ChatList({ collapsed, activeChat, onChatSelect }: { collapsed: b
                             {activeChat === conversation._id && (
                                 <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#8b5cf6] rounded-r-full" />
                             )}
-                            <div className="flex flex-col">
-                                <div className="font-medium text-white mb-1 line-clamp-1">{conversation.title}</div>
-                                <div className="text-xs text-gray-500">
-                                    {new Date(conversation._creationTime).toLocaleString()}
+                            <div className="flex flex-row justify-between">
+                                <div className="flex flex-col">
+                                    <div className="font-medium text-white mb-1 line-clamp-1">{conversation.title}</div>
+                                    <div className="text-xs text-gray-500">
+                                        {new Date(conversation._creationTime).toLocaleString()}
+                                    </div>
                                 </div>
+                                <Button className={`bg-transparent hover:bg-[#3a1a2f] ${activeChat === conversation._id ? "" : "hidden"}`} onClick={() => handleDeleteChat(conversation._id)}>
+                                    <Trash />
+                                </Button>
                             </div>
                         </div>
                     ))
