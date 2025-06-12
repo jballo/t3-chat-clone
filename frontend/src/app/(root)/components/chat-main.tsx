@@ -68,6 +68,7 @@ export function ChatMessages({ messages }: ChatMessagesProps) {
           <div className="flex justify-start">
             <div className="max-w-[80%] bg-[#2a2a2a] text-white rounded-2xl rounded-bl-md px-4 py-3">
               <MessageRenderer content={msg.message} />
+              {/* {msg.message} */}
             </div>
           </div>
         ) : (
