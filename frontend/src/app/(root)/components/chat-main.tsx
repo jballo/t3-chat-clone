@@ -19,6 +19,7 @@ import { Id } from "../../../../convex/_generated/dataModel";
 import { useAction, useConvexAuth, useMutation, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { ModelSelector } from "./model-selector";
+import { MessageRenderer } from "./MessageContent";
 
 interface LLMMessage {
   role: string;
@@ -68,12 +69,13 @@ export function ChatMessages({ messages }: ChatMessagesProps) {
             {msg.type === "assistant" ? (
               <div className="flex justify-start">
                 <div className="max-w-[80%] bg-[#2a2a2a] text-white rounded-2xl rounded-bl-md px-4 py-3">
-                  {msg.message}
+                  <MessageRenderer content={msg.message} />
                 </div>
               </div>
             ) : (
               <div className="flex justify-end">
                 <div className="max-w-[80%] bg-[#3a1a2f] text-white rounded-2xl rounded-br-md px-4 py-3">
+                  {/* <MessageRenderer content={msg.message} /> */}
                   {msg.message}
                 </div>
               </div>
