@@ -16,5 +16,6 @@ export default defineSchema({
         message: v.string(),
         type: v.string(),
         isComplete: v.boolean(),
+        model: v.optional(v.string()),
     }),
 });
