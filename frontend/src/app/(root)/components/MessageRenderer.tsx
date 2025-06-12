@@ -1,16 +1,27 @@
 // components/MessageRenderer.tsx
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { oneDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import type { Components } from "react-markdown";
+
 
 interface MessageRendererProps {
     content: string;
+    isVisible?: boolean;
 }
 
-export function MessageRenderer({ content }: MessageRendererProps) {
-    // Memoize components object to prevent recreation on every render
+export function MessageRenderer({ content, isVisible = true }: MessageRendererProps) {
+    const [shouldHighlight, setShouldHighlight] = useState(false);
+
+    // Delay syntax highlighting until component is "settled"
+    useEffect(() => {
+        if (isVisible) {
+            const timer = setTimeout(() => setShouldHighlight(true), 5);
+            return () => clearTimeout(timer);
+        }
+    }, [isVisible]);
+
     const components: Components = useMemo(
         () => ({
             code(props) {
@@ -20,9 +31,29 @@ export function MessageRenderer({ content }: MessageRendererProps) {
                 const isInline = !className;
 
                 if (!isInline && language) {
+                    // Show plain code first, then highlight
+                    if (!shouldHighlight) {
+                        return (
+                            <div className="my-3 rounded-lg overflow-hidden bg-gray-900">
+                                <div className="bg-[#362d3d] text-gray-300 px-3 py-2 text-xs font-mono border-b border-[#362d3d] flex items-center justify-between">
+                                    <span>{language}</span>
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 bg-gray-500 rounded-full animate-pulse"></div>
+                                        <span className="text-xs text-gray-500">Loading syntax highlighting...</span>
+                                    </div>
+                                </div>
+                                <pre className="p-3 overflow-x-auto text-gray-300">
+                                    <code className="text-sm leading-relaxed font-mono">
+                                        {String(children).replace(/\n$/, "")}
+                                    </code>
+                                </pre>
+                            </div>
+                        );
+                    }
+
                     return (
                         <div className="my-3 rounded-lg overflow-hidden">
-                            <div className="bg-[#362d3d] text-gray-300 px-3 py-2 text-xs font-mono border-b border-[#362d3d]">
+                            <div className="bg-[#362d3d] text-gray-300 px-3 py-2 text-xs font-mono border-b border-gray-700">
                                 {language}
                             </div>
                             <SyntaxHighlighter
@@ -97,10 +128,9 @@ export function MessageRenderer({ content }: MessageRendererProps) {
                 );
             },
         }),
-        []
+        [shouldHighlight]
     );
 
-    // Memoize the entire rendered content
     const renderedContent = useMemo(() => (
         <div className="prose prose-invert prose-sm max-w-none">
             <ReactMarkdown components={components}>{content}</ReactMarkdown>
