@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Paperclip,
   HighlighterIcon as HighlightIcon,
@@ -19,7 +19,7 @@ import { Id } from "../../../../convex/_generated/dataModel";
 import { useAction, useConvexAuth, useMutation, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { ModelSelector } from "./model-selector";
-import { MessageRenderer } from "./MessageContent";
+import { MessageRenderer } from "./MessageRenderer";
 
 interface LLMMessage {
   role: string;
@@ -60,28 +60,31 @@ interface ChatMessagesProps {
 }
 
 export function ChatMessages({ messages }: ChatMessagesProps) {
+  // Memoize the messages rendering
+  const renderedMessages = useMemo(() => (
+    messages.map((msg) => (
+      <div key={msg._id} className="mb-8">
+        {msg.type === "assistant" ? (
+          <div className="flex justify-start">
+            <div className="max-w-[80%] bg-[#2a2a2a] text-white rounded-2xl rounded-bl-md px-4 py-3">
+              <MessageRenderer content={msg.message} />
+            </div>
+          </div>
+        ) : (
+          <div className="flex justify-end">
+            <div className="max-w-[80%] bg-[#3a1a2f] text-white rounded-2xl rounded-br-md px-4 py-3">
+              {msg.message}
+            </div>
+          </div>
+        )}
+      </div>
+    ))
+  ), [messages]);
 
   return (
     <div className="flex-1 overflow-y-auto p-6">
       <div className="max-w-4xl mx-auto">
-        {messages.map((msg) => (
-          <div key={msg._id} className="mb-8">
-            {msg.type === "assistant" ? (
-              <div className="flex justify-start">
-                <div className="max-w-[80%] bg-[#2a2a2a] text-white rounded-2xl rounded-bl-md px-4 py-3">
-                  <MessageRenderer content={msg.message} />
-                </div>
-              </div>
-            ) : (
-              <div className="flex justify-end">
-                <div className="max-w-[80%] bg-[#3a1a2f] text-white rounded-2xl rounded-br-md px-4 py-3">
-                  {/* <MessageRenderer content={msg.message} /> */}
-                  {msg.message}
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
+        {renderedMessages}
       </div>
     </div>
   );
