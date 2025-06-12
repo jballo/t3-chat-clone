@@ -136,7 +136,7 @@ export const sendMessage = mutation({
       isComplete: false,
     });
 
-    await ctx.scheduler.runAfter(0, internal.chat.stream, {
+    await ctx.scheduler.runAfter(0, internal.chat.streamOptimal, {
       messageId: message_id,
       history: history,
       model: model,
@@ -200,6 +200,63 @@ export const stream = internalAction({
     // mark the appropriate message as complete
     await ctx.runMutation(internal.chat.completeMessage, {
       messageId: message_id,
+    });
+  },
+});
+
+export const streamOptimal = internalAction({
+  args: {
+    messageId: v.id("messages"),
+    history: v.array(v.object({ role: v.string(), content: v.string() })),
+    model: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const { messageId, history, model } = args;
+    
+    const groq = createGroq({
+      baseURL: "https://api.groq.com/openai/v1",
+      apiKey: process.env.GROQ_KEY,
+    });
+
+    const { textStream } = streamText({
+      model: groq(model),
+      system: "You are a professional assistant ready to help",
+      messages: history as Message[],
+    });
+
+    let content = "";
+    let chunkCount = 0;
+    let lastUpdate = Date.now();
+    const UPDATE_INTERVAL = 500; // Update every 500ms
+    const CHUNK_BATCH_SIZE = 10; // Or every 10 chunks
+
+    for await (const textPart of textStream) {
+      content += textPart;
+      chunkCount++;
+      
+      const now = Date.now();
+      const shouldUpdate = 
+        chunkCount >= CHUNK_BATCH_SIZE || 
+        (now - lastUpdate) >= UPDATE_INTERVAL;
+
+      if (shouldUpdate) {
+        await ctx.runMutation(internal.chat.updateMessage, {
+          messageId,
+          content,
+        });
+        chunkCount = 0;
+        lastUpdate = now;
+      }
+    }
+
+    // Final update and mark complete
+    await ctx.runMutation(internal.chat.updateMessage, {
+      messageId,
+      content,
+    });
+    
+    await ctx.runMutation(internal.chat.completeMessage, {
+      messageId,
     });
   },
 });
