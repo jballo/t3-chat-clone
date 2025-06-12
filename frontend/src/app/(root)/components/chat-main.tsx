@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Paperclip,
   HighlighterIcon as HighlightIcon,
@@ -56,36 +56,55 @@ interface ChatMainProps {
 }
 
 interface ChatMessagesProps {
-  messages: QueryMessage[]
+  messages: QueryMessage[];
 }
 
 export function ChatMessages({ messages }: ChatMessagesProps) {
   // Memoize the messages rendering
-  const renderedMessages = useMemo(() => (
-    messages.map((msg) => (
-      <div key={msg._id} className="mb-8">
-        {msg.type === "assistant" ? (
-          <div className="flex justify-start">
-            <div className="max-w-[80%] bg-[#2a2a2a] text-white rounded-2xl rounded-bl-md px-4 py-3">
-              <MessageRenderer content={msg.message} />
-              {/* {msg.message} */}
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Use requestAnimationFrame to ensure DOM is updated
+    requestAnimationFrame(() => {
+      scrollToBottom();
+    });
+  }, [messages]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({
+      behavior: "auto", // Change from "smooth" to "auto" to prevent scroll animation conflicts
+      block: "end",
+    });
+  };
+  // Memoize the messages rendering
+  const renderedMessages = useMemo(
+    () =>
+      messages.map((msg) => (
+        <div key={msg._id} className="mb-8">
+          {msg.type === "assistant" ? (
+            <div className="flex justify-start">
+              <div className="max-w-[80%] bg-[#2a2a2a] text-white rounded-2xl rounded-bl-md px-4 py-3">
+                <MessageRenderer content={msg.message} />
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="flex justify-end">
-            <div className="max-w-[80%] bg-[#3a1a2f] text-white rounded-2xl rounded-br-md px-4 py-3">
-              {msg.message}
+          ) : (
+            <div className="flex justify-end">
+              <div className="max-w-[80%] bg-[#3a1a2f] text-white rounded-2xl rounded-br-md px-4 py-3">
+                {msg.message}
+              </div>
             </div>
-          </div>
-        )}
-      </div>
-    ))
-  ), [messages]);
+          )}
+        </div>
+      )),
+    [messages]
+  );
 
   return (
     <div className="flex-1 overflow-y-auto p-6">
       <div className="max-w-4xl mx-auto">
         {renderedMessages}
+        <div ref={messagesEndRef} />
+        {/* Add this empty div as a scroll anchor */}
       </div>
     </div>
   );
@@ -100,14 +119,13 @@ export function ChatMain({
   const { isLoading, isAuthenticated } = useConvexAuth();
   const [message, setMessage] = useState("");
 
-  const messages = useQuery(
-    api.chat.getMessages,
-    activeChat ? { conversationId: activeChat } : "skip"
-  ) || [];
+  const messages =
+    useQuery(
+      api.chat.getMessages,
+      activeChat ? { conversationId: activeChat } : "skip"
+    ) || [];
   const sendMessage = useMutation(api.chat.sendMessage);
   const createChat = useAction(api.chat.createChat);
-
-
 
   const handleSendMessage = () => {
     if (isLoading || !isAuthenticated) return;
@@ -127,8 +145,8 @@ export function ChatMain({
       });
       history.push({
         role: "user",
-        content: message
-      })
+        content: message,
+      });
 
       sendMessage({
         conversationId: activeChat,

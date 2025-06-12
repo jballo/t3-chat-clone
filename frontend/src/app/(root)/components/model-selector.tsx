@@ -44,6 +44,12 @@ const allModels = [
         icon: "deepseek",
         capabilities: ["reasoning", "speed"],
     },
+    {
+        id: "gemini-2.0-flash",
+        name: "Gemini 2.0 Flash",
+        icon: "gemini",
+        capabilities: ["image", "search", "pdf"]
+    }
     // {
     //     id: "gpt-imagegen",
     //     name: "GPT ImageGen",

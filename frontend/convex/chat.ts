@@ -165,6 +165,17 @@ export const stream = internalAction({
       apiKey: process.env.GROQ_KEY,
     });
 
+    // const google = createGoogleGenerativeAI({
+    //   baseURL: "https://generativelanguage.googleapis.com/v1beta",
+    //   apiKey: process.env.GEMINI_KEY,
+    // });
+
+    // const { textStream } = streamText({
+    //   model: google('gemini-2.0-flash'),
+    //   system: "You are a profesional assistant ready to help",
+    //   messages: history,
+    // })
+
     // get llm response w/ streaming
 
     const { textStream } = streamText({
