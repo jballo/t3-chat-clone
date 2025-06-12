@@ -1,6 +1,5 @@
 "use client"
 
-import { Button } from "@/atoms/button"
 import { ChevronDown } from "lucide-react"
 
 interface ModelDropdownProps {

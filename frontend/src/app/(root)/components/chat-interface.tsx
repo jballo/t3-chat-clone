@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { ChatSidebar } from "./chat-sidebar"
-import { ModelSelector } from "./model-selector-old"
 import { ChatMain } from "./chat-main"
 import { Id } from "../../../../convex/_generated/dataModel"
 
@@ -11,18 +10,6 @@ interface Model {
     name: string;
     icon: string;
     capabilities: string[];
-}
-
-// Interface for the model coming from ModelSelector
-interface ModelSelectorModel {
-    id: string;
-    name: string;
-    icon: string;
-    capabilities: string[];
-    color: string;
-    isPro?: boolean;
-    isDegraded?: boolean;
-    subName?: string;
 }
 
 export function ChatInterface() {
