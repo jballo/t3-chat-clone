@@ -6,19 +6,47 @@ import {
   mutation,
   query,
 } from "./_generated/server";
-import { generateText, streamText } from "ai";
+import { CoreMessage, generateText, streamText } from "ai";
 import { createGroq } from "@ai-sdk/groq";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { api, internal } from "./_generated/api";
 
-interface Message {
-  role: "user" | "assistant" | "system";
-  content: string;
-}
+const coreTextPart = v.object({
+  type: v.literal("text"),
+  text: v.string(),
+});
+
+const coreImagePart = v.object({
+  type: v.literal("image"),
+  image: v.string(), // url
+  mimeType: v.optional(v.string()),
+});
+
+const coreFilePart = v.object({
+  type: v.literal("file"),
+  data: v.string(), // url
+  mimeType: v.string(),
+})
+
+const coreContent = v.union(
+  v.string(),
+  v.array(v.union(coreTextPart, coreImagePart, coreFilePart))
+)
+
+const coreMessage = v.object({
+  role: v.union(
+    v.literal("system"),
+    v.literal("user"),
+    v.literal("assistant"),
+    v.literal("tool")
+  ),
+  content: coreContent
+});
+
 
 export const createChat = action({
   args: {
-    message: v.string(),
+    history: v.array(coreMessage),
     model: v.string(),
   },
   async handler(ctx, args) {
@@ -28,7 +56,7 @@ export const createChat = action({
     }
 
     const user_id = identity.subject;
-    const userMessage = args.message;
+    const history = args.history;
     const model = args.model;
 
     const google = createGoogleGenerativeAI({
@@ -36,18 +64,11 @@ export const createChat = action({
       apiKey: process.env.GEMINI_KEY,
     });
 
-    const messages: Message[] = [
-      {
-        role: "system",
-        content:
-          "Generate a four word title that describes the message the user will provider. NO LONGER THAN FOUR WORDS",
-      },
-      { role: "user", content: userMessage },
-    ];
 
     const { text } = await generateText({
       model: google("gemini-2.0-flash-lite"),
-      messages: messages,
+      system: "Generate a four word title that describes the message the user will provider. NO LONGER THAN FOUR WORDS",
+      messages: history as CoreMessage[],
     });
 
     console.log("Title: ", text);
@@ -55,7 +76,7 @@ export const createChat = action({
     await ctx.runMutation(api.chat.saveChat, {
       userId: user_id,
       title: text,
-      userMessage: userMessage,
+      history: history,
       model: model,
     });
   },
@@ -65,13 +86,13 @@ export const saveChat = mutation({
   args: {
     userId: v.string(),
     title: v.string(),
-    userMessage: v.string(),
+    history: v.array(coreMessage),
     model: v.string(),
   },
   handler: async (ctx, args) => {
     const user_id = args.userId;
     const generatedTitle = args.title;
-    const userMessage = args.userMessage;
+    const history = args.history;
     const model = args.model;
 
     const chat_id = await ctx.db.insert("chats", {
@@ -84,12 +105,7 @@ export const saveChat = mutation({
 
     await ctx.runMutation(api.chat.sendMessage, {
       conversationId: chat_id,
-      history: [
-        {
-          role: "user",
-          content: userMessage,
-        },
-      ],
+      history: history,
       model: model,
     });
   },
@@ -98,12 +114,7 @@ export const saveChat = mutation({
 export const sendMessage = mutation({
   args: {
     conversationId: v.id("chats"),
-    history: v.array(
-      v.object({
-        role: v.string(),
-        content: v.string(),
-      })
-    ),
+    history: v.array(coreMessage),
     model: v.string(),
   },
   handler: async (ctx, args) => {
@@ -114,7 +125,7 @@ export const sendMessage = mutation({
     }
     const user_id = identity.subject;
     const history = args.history;
-    const msg = history[history.length - 1];
+    const msg = history[history.length - 1] // most recent message by user
     const model = args.model;
     const conversation_id = args.conversationId;
     console.log("Message: ", msg);
@@ -122,8 +133,7 @@ export const sendMessage = mutation({
     await ctx.db.insert("messages", {
       author_id: user_id,
       chat_id: conversation_id,
-      message: msg.content,
-      type: "user",
+      message: msg,
       isComplete: true,
       model: model,
     });
@@ -131,98 +141,133 @@ export const sendMessage = mutation({
     const message_id = await ctx.db.insert("messages", {
       author_id: user_id,
       chat_id: conversation_id,
-      message: "",
-      type: "assistant",
+      message: { role: "assistant", content: "" },
       isComplete: false,
     });
+    const fileSupportedLLMs = ["gemini-2.0-flash"];
 
-    await ctx.scheduler.runAfter(0, internal.chat.streamOptimal, {
-      messageId: message_id,
-      history: history,
-      model: model,
-    });
-  },
-});
-
-export const stream = internalAction({
-  args: {
-    messageId: v.id("messages"),
-    history: v.array(
-      v.object({
-        role: v.string(),
-        content: v.string(),
-      })
-    ),
-    model: v.string(),
-  },
-  handler: async (ctx, args) => {
-    const message_id = args.messageId;
-    const history: Message[] = args.history as Message[];
-    const model = args.model;
-
-    const groq = createGroq({
-      baseURL: "https://api.groq.com/openai/v1",
-      apiKey: process.env.GROQ_KEY,
-    });
-
-    // const google = createGoogleGenerativeAI({
-    //   baseURL: "https://generativelanguage.googleapis.com/v1beta",
-    //   apiKey: process.env.GEMINI_KEY,
-    // });
-
-    // const { textStream } = streamText({
-    //   model: google('gemini-2.0-flash'),
-    //   system: "You are a profesional assistant ready to help",
-    //   messages: history,
-    // })
-
-    // get llm response w/ streaming
-
-    const { textStream } = streamText({
-      model: groq(model), // llama-3.1-8b-instant
-      system: "You are a professional assistant ready to help",
-      messages: history,
-    });
-
-    let content = "";
-
-    // while reciving chunks add it to a string
-    for await (const textPart of textStream) {
-      content += textPart;
-      // console.log("Current Content: ", content);
-      // update the appropriate message id with the new current message
-      await ctx.runMutation(internal.chat.updateMessage, {
+    if (fileSupportedLLMs.includes(model)) {
+      await ctx.scheduler.runAfter(0, internal.chat.streamWithFiles, {
         messageId: message_id,
-        content: content,
+        messages: history,
+        model: model,
+      });
+    } else {
+      await ctx.scheduler.runAfter(0, internal.chat.streamFullText, {
+        messageId: message_id,
+        messages: history,
+        model: model,
       });
     }
+  },
+});
 
-    // mark the appropriate message as complete
+
+export const streamWithFiles = internalAction({
+  args: {
+    messageId: v.id("messages"),
+    messages: v.array(coreMessage),
+    model: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const { messageId, messages, model } = args;
+    
+
+    const google = createGoogleGenerativeAI({
+      baseURL: "https://generativelanguage.googleapis.com/v1beta",
+      apiKey: process.env.GEMINI_KEY,
+    });
+
+    const provider = google;
+
+    const { textStream } = streamText({
+      model: provider(model),
+      system: "You are a professional assistant",
+      messages: messages as CoreMessage[],
+    })
+
+    // const { textStream } = streamText({
+    //   model: groq(model),
+    //   system: "You are a professional assistant ready to help",
+    //   messages: messages as CoreMessage[],
+    // });
+
+    let content = "";
+    let chunkCount = 0;
+    let lastUpdate = Date.now();
+    const UPDATE_INTERVAL = 500; // Update every 500ms
+    const CHUNK_BATCH_SIZE = 10; // Or every 10 chunks
+
+    for await (const textPart of textStream) {
+      content += textPart;
+      chunkCount++;
+      
+      const now = Date.now();
+      const shouldUpdate = 
+        chunkCount >= CHUNK_BATCH_SIZE || 
+        (now - lastUpdate) >= UPDATE_INTERVAL;
+
+      if (shouldUpdate) {
+        await ctx.runMutation(internal.chat.updateMessage, {
+          messageId,
+          content,
+        });
+        chunkCount = 0;
+        lastUpdate = now;
+      }
+    }
+
+    // Final update and mark complete
+    await ctx.runMutation(internal.chat.updateMessage, {
+      messageId,
+      content,
+    });
+    
     await ctx.runMutation(internal.chat.completeMessage, {
-      messageId: message_id,
+      messageId,
     });
   },
 });
 
-export const streamOptimal = internalAction({
+export const streamFullText = internalAction({
   args: {
     messageId: v.id("messages"),
-    history: v.array(v.object({ role: v.string(), content: v.string() })),
+    messages: v.array(coreMessage),
     model: v.string(),
   },
   handler: async (ctx, args) => {
-    const { messageId, history, model } = args;
+    const { messageId, messages, model } = args;
     
+    const formattedMessages: { role: "system" | "user" | "assistant" | "tool",  content: string }[] = [];
+
+    messages.map(message => {
+      if ((typeof message.content) === "string") {
+        formattedMessages.push({
+          role: message.role,
+          content: message.content,
+        });
+      } else {
+        formattedMessages.push({
+          role: message.role,
+          content: message.content[0].type === "text" ? message.content[0].text : "",
+        });
+      }
+    })
+
+
     const groq = createGroq({
       baseURL: "https://api.groq.com/openai/v1",
       apiKey: process.env.GROQ_KEY,
     });
 
+    const provider = groq;
+
     const { textStream } = streamText({
-      model: groq(model),
-      system: "You are a professional assistant ready to help",
-      messages: history as Message[],
-    });
+      model: provider(model),
+      system: "You are a professional assistant",
+      messages: formattedMessages as CoreMessage[],
+    })
+
 
     let content = "";
     let chunkCount = 0;
@@ -271,7 +316,10 @@ export const updateMessage = internalMutation({
     const messageId = args.messageId;
     const content = args.content;
 
-    await ctx.db.patch(messageId, { message: content });
+    await ctx.db.patch(messageId, { message: {
+      content: content,
+      role: "assistant"
+    } });
   },
 });
 
@@ -343,5 +391,45 @@ export const deleteChat = mutation({
 
     // delete chat
     await ctx.db.delete(conversation_id);
+  }
+})
+
+
+export const uploadImages = mutation({
+  args: {
+    files: v.array(v.object({
+      name: v.string(),
+      url: v.string(),
+      mimeType: v.string(),
+      size: v.number(),
+    }))
+  }, 
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (identity === null) {
+      throw new Error("Not authenticated");
+    }
+
+    const user_id = identity.subject;
+    const files = args.files;
+    const uploadedFiles: { type: string, data: string, mimeType: string }[] = [];
+
+    for (const file of files) {
+      await ctx.db.insert("files", {
+        name: file.name,
+        url: file.url,
+        size: file.size,
+        authorId: user_id,
+        mimeType: file.mimeType
+      });
+      uploadedFiles.push({
+        type: "file",
+        data: file.url,
+        mimeType: file.mimeType,
+      });
+    }
+
+    return uploadedFiles;
+
   }
 })
