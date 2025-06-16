@@ -11,6 +11,8 @@ import {
   Sparkles,
   Settings,
   Send,
+  Ellipsis,
+  LoaderCircle,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/atoms/button";
@@ -20,20 +22,55 @@ import { useAction, useConvexAuth, useMutation, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { ModelSelector } from "./model-selector";
 import { MessageRenderer } from "./MessageRenderer";
+import { UploadButton } from "@/utils/uploadthing";
+import Image from "next/image";
 
-interface LLMMessage {
-  role: string;
-  content: string;
+interface CoreTextPart {
+  type: "text";
+  text: string;
 }
+
+interface CoreImagePart {
+  type: "image";
+  image: string; // either a URL or a base64 string
+  mimeType?: string;
+}
+
+interface CoreFilePart {
+  type: "file";
+  data: string; // either a URL or base64 string
+  mimeType: string;
+}
+
+type CoreContent = string | Array<CoreTextPart | CoreImagePart | CoreFilePart>;
+
+interface CoreMessage {
+  role: "system" | "user" | "assistant" | "tool";
+  content: CoreContent;
+}
+
 
 interface QueryMessage {
   _id: Id<"messages">;
   _creationTime: number;
   model?: string | undefined;
-  type: string;
+  message: {
+    role: "user" | "system" | "assistant" | "tool";
+    content: string | ({
+      text: string;
+      type: "text";
+    } | {
+      mimeType?: string | undefined;
+      image: string;
+      type: "image";
+    } | {
+      type: "file";
+      mimeType: string;
+      data: string;
+    })[];
+  };
   author_id: string;
   chat_id: Id<"chats">;
-  message: string;
   isComplete: boolean;
 }
 
@@ -81,16 +118,48 @@ export function ChatMessages({ messages }: ChatMessagesProps) {
     () =>
       messages.map((msg) => (
         <div key={msg._id} className="mb-8">
-          {msg.type === "assistant" ? (
+          {msg.message.role === "assistant" ? (
             <div className="flex justify-start">
               <div className="max-w-[80%] bg-[#2a2a2a] text-white rounded-2xl rounded-bl-md px-4 py-3">
-                <MessageRenderer content={msg.message} />
+                {Array.isArray(msg.message.content) ? (
+                  msg.message.content[0].type === "text" ? <MessageRenderer content={msg.message.content[0].text} /> : ''
+                ) : (
+                  <MessageRenderer content={msg.message.content} />
+                )}
               </div>
             </div>
           ) : (
             <div className="flex justify-end">
               <div className="max-w-[80%] bg-[#3a1a2f] text-white rounded-2xl rounded-br-md px-4 py-3">
-                {msg.message}
+                {Array.isArray(msg.message.content) ? (
+                  <>
+                    {msg.message.content[0].type === "text" ? <MessageRenderer content={msg.message.content[0].text} /> : ''}
+                    <div className="flex flex-row gap-2 mt-2">
+                      {msg.message.content.slice(1).map((item, index) => {
+                        if (item.type === "image") {
+                          return (
+                            <Image
+                              key={index}
+                              alt="Uploaded image"
+                              src={item.image || ""}
+                              width={70}
+                              height={50}
+                              className="rounded-xl border border-[#3a3340] object-cover"
+                            />
+                          );
+                        } else if (item.type === "file") {
+                          return (
+                            <div key={index} className="flex flex-row items-center w-[165px] h-[50px] overflow-hidden text-xs text-white p-3 rounded-xl border border-[#3a3340] gap-1">
+                              <Paperclip className="h-4 w-4" /> {item.data?.split('/').pop()}
+                            </div>
+                          )
+                        }
+                      })}
+                    </div>
+                  </>
+                ) : (
+                  <MessageRenderer content={msg.message.content} />
+                )}
               </div>
             </div>
           )}
@@ -110,6 +179,12 @@ export function ChatMessages({ messages }: ChatMessagesProps) {
   );
 }
 
+interface File {
+  type: string,
+  data: string,
+  mimeType: string,
+}
+
 export function ChatMain({
   selectedModel,
   activeChat,
@@ -118,44 +193,162 @@ export function ChatMain({
   const router = useRouter();
   const { isLoading, isAuthenticated } = useConvexAuth();
   const [message, setMessage] = useState("");
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+
 
   const messages =
     useQuery(
       api.chat.getMessages,
       activeChat ? { conversationId: activeChat } : "skip"
     ) || [];
+
+  console.log("messages: ", messages);
   const sendMessage = useMutation(api.chat.sendMessage);
   const createChat = useAction(api.chat.createChat);
+  const uploadImages = useMutation(api.chat.uploadImages);
 
   const handleSendMessage = () => {
     if (isLoading || !isAuthenticated) return;
 
     if (!activeChat) {
-      createChat({
-        message: message,
-        model: selectedModel.id,
-      });
-    } else {
-      const history: LLMMessage[] = [];
-      messages.map((message) => {
-        history.push({
-          role: message.type,
-          content: message.message,
-        });
-      });
-      history.push({
-        role: "user",
-        content: message,
-      });
+      if (uploadedFiles.length > 0) {
 
-      sendMessage({
-        conversationId: activeChat,
-        history: history,
-        model: selectedModel.id,
-      });
+        const userMsg: CoreTextPart = {
+          type: "text",
+          text: message
+        }
+        const tempFiles: (CoreImagePart | CoreFilePart)[] = [];
+
+        uploadedFiles.map(file => {
+          if (file.mimeType === "application/pdf") {
+            const tempFile: CoreFilePart = {
+              type: "file",
+              data: file.data,
+              mimeType: file.mimeType,
+            }
+            tempFiles.push(tempFile);
+          } else {
+            const tempImg: CoreImagePart = {
+              type: "image",
+              image: file.data,
+              mimeType: file.mimeType
+            }
+            tempFiles.push(tempImg);
+          }
+        })
+
+        const content: CoreContent = [userMsg, ...tempFiles];
+
+
+        const msg: CoreMessage = {
+          role: "user",
+          content: content
+        }
+        createChat({
+          history: [msg],
+          model: selectedModel.id
+        });
+
+      } else {
+        const msg: CoreMessage = {
+          role: "user",
+          content: message
+        }
+
+        createChat({
+          history: [msg],
+          model: selectedModel.id,
+        });
+      }
+    } else {
+      if (uploadedFiles.length > 0) {
+
+        const userMsg: CoreTextPart = {
+          type: "text",
+          text: message
+        }
+        const tempFiles: (CoreImagePart | CoreFilePart)[] = [];
+
+        uploadedFiles.map(file => {
+          if (file.mimeType === "application/pdf") {
+            const tempFile: CoreFilePart = {
+              type: "file",
+              data: file.data,
+              mimeType: file.mimeType,
+            }
+            tempFiles.push(tempFile);
+          } else {
+            const tempImg: CoreImagePart = {
+              type: "image",
+              image: file.data,
+              mimeType: file.mimeType
+            }
+            tempFiles.push(tempImg);
+          }
+        })
+
+        const content: CoreContent = [userMsg, ...tempFiles];
+
+
+        const msg: CoreMessage = {
+          role: "user",
+          content: content
+        }
+
+        const oldHistory: CoreMessage[] = [];
+
+        messages.map(m => {
+          if (m.message) {
+            oldHistory.push({
+              role: m.message.role,
+              content: m.message.content
+            });
+          }
+        })
+
+        const newHistory: CoreMessage[] = [...oldHistory, msg];
+
+        sendMessage({
+          conversationId: activeChat,
+          history: newHistory,
+          model: selectedModel.id,
+        });
+
+      } else {
+        const msg: CoreMessage = {
+          role: "user",
+          content: message
+        }
+
+        const oldHistory: CoreMessage[] = [];
+
+        messages.map(m => {
+          if (m.message) {
+            oldHistory.push({
+              role: m.message.role,
+              content: m.message.content
+            });
+          }
+        })
+
+        const newHistory: CoreMessage[] = [...oldHistory, msg];
+
+        // createChat({
+        //   history: [msg],
+        //   model: selectedModel.id,
+        // });
+
+        sendMessage({
+          conversationId: activeChat,
+          history: newHistory,
+          model: selectedModel.id,
+        });
+
+      }
     }
 
     setMessage("");
+    setUploadedFiles([]);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -260,8 +453,31 @@ export function ChatMain({
 
       {/* Message input */}
       <div className="p-6 border-t border-[#2a2a2a] bg-[#1a1a1a]">
-        <div className="max-w-4xl mx-auto">
-          <div className="relative">
+        <div className="flex flex-col  gap-3 max-w-4xl mx-auto">
+          <div className="flex flex-row w-full gap-4">
+            {uploadedFiles.map((file, index) => {
+              if (file.type === "application/pdf") {
+                return (
+                  <div key={index} className="flex flex-row items-center w-[165px] h-[50px] overflow-hidden text-xs text-white p-3 rounded-xl border-1 border-[#3a3340] gap-1">
+                    <Paperclip className="h-4 w-4" /> {file.type}
+                  </div>
+                )
+              } else {
+                return (
+                  <Image
+                    key={index}
+                    alt={file.mimeType}
+                    src={file.data}
+                    width={70}  // 70 pixels
+                    height={50} // 50 pixels
+                    className="rounded-xl border-1 border-[#3a3340]"
+                  />
+                );
+              }
+
+            })}
+          </div>
+          <div className="relative bg-teal-300">
             <Input
               placeholder="Type your message here..."
               value={message}
@@ -270,13 +486,44 @@ export function ChatMain({
               className="pr-32 pl-6 py-6 bg-[#1e1e1e] border-[#3a3a3a] text-white rounded-2xl focus:border-[#3a1a2f] focus:ring-2 focus:ring-[#3a1a2f]/25 transition-colors duration-200 text-base"
             />
             <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-9 w-9 text-gray-400 hover:text-white hover:bg-[#2a2a2a] rounded-xl transition-colors duration-200"
-              >
-                <Paperclip className="h-5 w-5" />
-              </Button>
+              <UploadButton
+                endpoint="imageUploader"
+                className="ut-button:h-9 ut-button:w-9 ut-button:bg-transparent ut-allowed-content:hidden"
+                content={{
+                  button({ ready }) {
+                    if (ready) return <Paperclip className="w-4 h-4 text-[#99a1af]" />;
+
+                    return <Ellipsis className="w-4 h-4 text-[#99a1af]" />;
+                  },
+                  allowedContent({ ready, isUploading }) {
+                    if (!ready) return <Ellipsis className="w-4 h-4 text-[#99a1af]" />;
+                    if (isUploading) return <LoaderCircle className="w-4 h-4 text-[#99a1af]" />;
+                    return "";
+                  },
+                }}
+                onClientUploadComplete={async (res) => {
+                  // Do something with the response
+                  console.log("Files: ", res);
+                  const filesFormatted: { name: string, url: string, size: number, mimeType: string }[] = [];
+
+                  res.map(file => {
+                    filesFormatted.push({
+                      name: file.name,
+                      url: file.ufsUrl,
+                      size: file.size,
+                      mimeType: file.type,
+                    })
+                  });
+
+                  const tempFiles = await uploadImages({ files: filesFormatted });
+                  setUploadedFiles(prevFiles => [...prevFiles, ...tempFiles]);
+                  // alert("Upload Completed");
+                }}
+                onUploadError={(error: Error) => {
+                  // Do something with the error.
+                  alert(`ERROR! ${error.message}`);
+                }}
+              />
               <ModelSelector
                 selectedModel={selectedModel}
                 setSelectedModel={setSelectedModel}
