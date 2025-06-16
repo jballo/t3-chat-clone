@@ -486,44 +486,46 @@ export function ChatMain({
               className="pr-32 pl-6 py-6 bg-[#1e1e1e] border-[#3a3a3a] text-white rounded-2xl focus:border-[#3a1a2f] focus:ring-2 focus:ring-[#3a1a2f]/25 transition-colors duration-200 text-base"
             />
             <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
-              <UploadButton
-                endpoint="imageUploader"
-                className="ut-button:h-9 ut-button:w-9 ut-button:bg-transparent ut-allowed-content:hidden"
-                content={{
-                  button({ ready }) {
-                    if (ready) return <Paperclip className="w-4 h-4 text-[#99a1af]" />;
+              {(selectedModel.capabilities.includes('image') || selectedModel.capabilities.includes('pdf')) && (
+                <UploadButton
+                  endpoint="imageUploader"
+                  className="ut-button:h-9 ut-button:w-9 ut-button:bg-transparent ut-allowed-content:hidden"
+                  content={{
+                    button({ ready }) {
+                      if (ready) return <Paperclip className="w-4 h-4 text-[#99a1af]" />;
 
-                    return <Ellipsis className="w-4 h-4 text-[#99a1af]" />;
-                  },
-                  allowedContent({ ready, isUploading }) {
-                    if (!ready) return <Ellipsis className="w-4 h-4 text-[#99a1af]" />;
-                    if (isUploading) return <LoaderCircle className="w-4 h-4 text-[#99a1af]" />;
-                    return "";
-                  },
-                }}
-                onClientUploadComplete={async (res) => {
-                  // Do something with the response
-                  console.log("Files: ", res);
-                  const filesFormatted: { name: string, url: string, size: number, mimeType: string }[] = [];
+                      return <Ellipsis className="w-4 h-4 text-[#99a1af]" />;
+                    },
+                    allowedContent({ ready, isUploading }) {
+                      if (!ready) return <Ellipsis className="w-4 h-4 text-[#99a1af]" />;
+                      if (isUploading) return <LoaderCircle className="w-4 h-4 text-[#99a1af]" />;
+                      return "";
+                    },
+                  }}
+                  onClientUploadComplete={async (res) => {
+                    // Do something with the response
+                    console.log("Files: ", res);
+                    const filesFormatted: { name: string, url: string, size: number, mimeType: string }[] = [];
 
-                  res.map(file => {
-                    filesFormatted.push({
-                      name: file.name,
-                      url: file.ufsUrl,
-                      size: file.size,
-                      mimeType: file.type,
-                    })
-                  });
+                    res.map(file => {
+                      filesFormatted.push({
+                        name: file.name,
+                        url: file.ufsUrl,
+                        size: file.size,
+                        mimeType: file.type,
+                      })
+                    });
 
-                  const tempFiles = await uploadImages({ files: filesFormatted });
-                  setUploadedFiles(prevFiles => [...prevFiles, ...tempFiles]);
-                  // alert("Upload Completed");
-                }}
-                onUploadError={(error: Error) => {
-                  // Do something with the error.
-                  alert(`ERROR! ${error.message}`);
-                }}
-              />
+                    const tempFiles = await uploadImages({ files: filesFormatted });
+                    setUploadedFiles(prevFiles => [...prevFiles, ...tempFiles]);
+                    // alert("Upload Completed");
+                  }}
+                  onUploadError={(error: Error) => {
+                    // Do something with the error.
+                    alert(`ERROR! ${error.message}`);
+                  }}
+                />
+              )}
               <ModelSelector
                 selectedModel={selectedModel}
                 setSelectedModel={setSelectedModel}
