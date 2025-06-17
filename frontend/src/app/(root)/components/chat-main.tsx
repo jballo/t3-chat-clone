@@ -13,6 +13,9 @@ import {
   Send,
   Ellipsis,
   LoaderCircle,
+  Share,
+  Mail,
+  XIcon,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/atoms/button";
@@ -24,6 +27,9 @@ import { ModelSelector } from "./model-selector";
 import { MessageRenderer } from "./MessageRenderer";
 import { UploadButton } from "@/utils/uploadthing";
 import Image from "next/image";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/atoms/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/atoms/tabs";
+import * as DialogPrimitive from "@radix-ui/react-dialog"
 
 interface CoreTextPart {
   type: "text";
@@ -370,6 +376,67 @@ export function ChatMain({
           <h2 className="text-white font-semibold text-lg">{activeChat ? activeChat.title : "Chat"}</h2>
         </div>
         <div className="flex items-center gap-2">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 text-gray-400 hover:text-white hover:bg-[#2a2a2a] rounded-xl transition-colors duration-200"
+              >
+                <Share className="h-5 w-5" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-2xl p-6 shadow-lg gap-4">
+              <DialogPrimitive.Close className="absolute top-4 right-4 rounded-sm text-white hover:opacity-75">
+                <XIcon className="h-4 w-4" />
+                <span className="sr-only">Close</span>
+              </DialogPrimitive.Close>
+              <DialogHeader>
+                <DialogTitle className="text-white font-semibold">
+                  Share {activeChat?.title}
+                </DialogTitle>
+                <DialogDescription className="text-gray-400">
+                  Share your chat with other users on the platform. Enter their email.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex flex-col gap-8">
+                <div className="flex flex-row items-center gap-3">
+                  <label className="text-gray-400">
+                    <Mail className="h-8" />
+                  </label>
+                  <Input type="email" className="bg-[#1e1e1e] text-white border border-[#3a3a3a] rounded-md h-8" />
+                </div>
+                <div className="flex flex-row items-end justify-between">
+                  <Tabs defaultValue="edit">
+                    <TabsList className="bg-[#2a2a2a] border border-[#3a3a3a] rounded-xl p-1">
+                      <TabsTrigger
+                        value="edit"
+                        className="px-4 py-2 rounded-md text-gray-300 hover:text-white transition-colors duration-200 data-[state=active]:bg-[#2A1A2F] data-[state=active]:text-white"
+                      >
+                        Edit
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="view"
+                        className="px-4 py-2 rounded-md text-gray-300 hover:text-white transition-colors duration-200 data-[state=active]:bg-[#2A1A2F] data-[state=active]:text-white"
+                      >
+                        View
+                      </TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="edit" className="mt-2 text-gray-300">
+                      Let another user add additions to this chat.
+                    </TabsContent>
+                    <TabsContent value="view" className="mt-2 text-gray-300">
+                      Coming soon...
+                    </TabsContent>
+                  </Tabs>
+                  <Button className="bg-[#3a1a2f] hover:bg-[#4a2a3f] text-white rounded-xl transition-colors duration-200">
+                    Submit
+                  </Button>
+
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
           <Button
             variant="ghost"
             size="icon"
