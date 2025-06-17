@@ -16,6 +16,8 @@ import {
   Share,
   Mail,
   XIcon,
+  Bell,
+  Check,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/atoms/button";
@@ -30,6 +32,8 @@ import Image from "next/image";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/atoms/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/atoms/tabs";
 import * as DialogPrimitive from "@radix-ui/react-dialog"
+import { Popover, PopoverContent, PopoverTrigger } from "@/atoms/popover";
+import { Card, CardContent, CardFooter, CardHeader } from "@/atoms/card";
 
 interface CoreTextPart {
   type: "text";
@@ -200,6 +204,7 @@ export function ChatMain({
   const { isLoading, isAuthenticated } = useConvexAuth();
   const [message, setMessage] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [email, setEmail] = useState<string>("");
 
 
   const messages =
@@ -212,6 +217,14 @@ export function ChatMain({
   const sendMessage = useMutation(api.chat.sendMessage);
   const createChat = useAction(api.chat.createChat);
   const uploadImages = useMutation(api.chat.uploadImages);
+  const createInvitation = useMutation(api.chat.createInvitation);
+  const pendingInvitations = useQuery(api.chat.getPendingInvitations);
+  const acceptInvite = useMutation(api.chat.acceptInvitation);
+  const denyInvite = useMutation(api.chat.denyInvitation);
+
+  useEffect(() => {
+    console.log("pendingInvitations: ", pendingInvitations);
+  }, [pendingInvitations]);
 
   const handleSendMessage = () => {
     if (isLoading || !isAuthenticated) return;
@@ -368,6 +381,19 @@ export function ChatMain({
     router.push("/settings");
   };
 
+
+  const shareChat = () => {
+    if (!email || email.length < 1) return;
+
+    if (!activeChat) return;
+
+    createInvitation({
+      recipient_email: email,
+      chat_id: activeChat.id,
+      chat_name: activeChat.title
+    });
+  }
+
   return (
     <div className="flex flex-col h-full bg-[#1a1a1a]">
       {/* Chat header */}
@@ -404,7 +430,12 @@ export function ChatMain({
                   <label className="text-gray-400">
                     <Mail className="h-8" />
                   </label>
-                  <Input type="email" className="bg-[#1e1e1e] text-white border border-[#3a3a3a] rounded-md h-8" />
+                  <Input
+                    type="email"
+                    className="bg-[#1e1e1e] text-white border border-[#3a3a3a] rounded-md h-8"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
                 </div>
                 <div className="flex flex-row items-end justify-between">
                   <Tabs defaultValue="edit">
@@ -429,7 +460,10 @@ export function ChatMain({
                       Coming soon...
                     </TabsContent>
                   </Tabs>
-                  <Button className="bg-[#3a1a2f] hover:bg-[#4a2a3f] text-white rounded-xl transition-colors duration-200">
+                  <Button
+                    className="bg-[#3a1a2f] hover:bg-[#4a2a3f] text-white rounded-xl transition-colors duration-200"
+                    onClick={shareChat}
+                  >
                     Submit
                   </Button>
 
@@ -437,6 +471,64 @@ export function ChatMain({
               </div>
             </DialogContent>
           </Dialog>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 text-gray-400 hover:text-white hover:bg-[#2a2a2a] rounded-xl transition-colors duration-200"
+              >
+                <Bell className="h-5 w-5" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="bg-[#1e1e1e] border-none p-0 w-80">
+              <Card className="bg-[#1e1e1e] border-[1px] border-[#2a2a2a] text-white">
+                <CardHeader className="text-lg font-semibold">
+                  Chat Invitations
+                </CardHeader>
+                <CardContent>
+                  {(pendingInvitations && pendingInvitations.length > 0) ? (pendingInvitations.map(invitation => (
+                    <div key={invitation._id} className="flex flex-col gap-2 p-3 border border-[#2a2a2a] rounded-xl mb-2">
+                      <p className="text-base font-bold text-white">
+                        {invitation.chat_name}
+                      </p>
+                      <p className="text-sm text-gray-400">
+                        {invitation.author_email} shared a chat.
+                      </p>
+                      <div className="flex flex-row items-center justify-between">
+                        <p className="text-sm text-gray-500">
+                          {new Date(invitation._creationTime).toLocaleDateString()}
+                        </p>
+                        <div className="flex flex-row gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-gray-400 hover:text-white hover:bg-[#2a2a2a] rounded-xl"
+                            onClick={() => denyInvite({ invitation_id: invitation._id })}
+                          >
+                            <XIcon className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            className="bg-[#3a1a2f] hover:bg-[#4a2a3f] text-white rounded-xl px-3 py-1 text-sm"
+                            onClick={() => acceptInvite({ invitation_id: invitation._id })}
+                          >
+                            <Check className="h-4 w-4 mr-1" /> Accept
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))) : (
+                    <div className="flex flex-col gap-2 p-3 border border-[#2a2a2a] rounded-xl mb-2">
+                      No Invitations
+                    </div>
+                  )}
+                </CardContent>
+                <CardFooter className="hidden">
+                  View All
+                </CardFooter>
+              </Card>
+            </PopoverContent>
+          </Popover>
           <Button
             variant="ghost"
             size="icon"

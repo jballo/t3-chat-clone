@@ -27,6 +27,7 @@ export function ChatList({ collapsed, activeChat, onChatSelect }: ChatListProps)
     const [searchQuery, setSearchQuery] = useState("");
 
     const conversations = useQuery(api.chat.getChats) || [];
+    const sharedChats = useQuery(api.chat.getAcceptedChats) || [];
     const deleteChat = useMutation(api.chat.deleteChat);
 
 
@@ -42,6 +43,10 @@ export function ChatList({ collapsed, activeChat, onChatSelect }: ChatListProps)
             onChatSelect(null);
         }
     }, [conversations]);
+
+    useEffect(() => {
+        console.log("Accepted chats: ", sharedChats);
+    }, [sharedChats]);
 
 
     // Filter conversations based on search query

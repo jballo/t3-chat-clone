@@ -62,6 +62,6 @@ export default defineSchema({
         author_email: v.string(),
         chat_id: v.id("chats"),
         chat_name: v.string(),
-        accepted: v.string(),
+        status: v.string(),
     })
 });
