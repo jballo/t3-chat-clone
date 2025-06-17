@@ -13,11 +13,17 @@ import { Id } from "../../../../convex/_generated/dataModel"
 interface ChatSidebarProps {
     collapsed: boolean
     onToggleCollapse: () => void
-    activeChat: Id<"chats"> | null
-    onChatSelect: (chatId: Id<"chats"> | null) => void
+    activeChat: { id: Id<"chats">, title: string } | null
+    onChatSelect: (chatId: { id: Id<"chats">, title: string } | null) => void
 }
 
-export function ChatList({ collapsed, activeChat, onChatSelect }: { collapsed: boolean; activeChat: Id<"chats"> | null; onChatSelect: (chatId: Id<"chats"> | null) => void }) {
+interface ChatListProps {
+    collapsed: boolean
+    activeChat: { id: Id<"chats">, title: string } | null
+    onChatSelect: (chatId: { id: Id<"chats">, title: string } | null) => void
+}
+
+export function ChatList({ collapsed, activeChat, onChatSelect }: ChatListProps) {
     const [searchQuery, setSearchQuery] = useState("");
 
     const conversations = useQuery(api.chat.getChats) || [];
@@ -27,7 +33,11 @@ export function ChatList({ collapsed, activeChat, onChatSelect }: { collapsed: b
     useEffect(() => {
         console.log("New convo")
         if (conversations.length > 0) {
-            onChatSelect(conversations[0]._id);
+
+            onChatSelect({
+                id: conversations[0]._id,
+                title: conversations[0].title
+            });
         } else {
             onChatSelect(null);
         }
@@ -92,11 +102,11 @@ export function ChatList({ collapsed, activeChat, onChatSelect }: { collapsed: b
                     filteredConversations.map((conversation) => (
                         <div
                             key={conversation._id}
-                            onClick={() => onChatSelect(conversation._id)}
-                            className={`mx-2 mb-1 px-3 py-3 rounded-xl cursor-pointer text-gray-300 text-sm transition-colors duration-150 hover:bg-[#2a2a2a] relative ${activeChat === conversation._id ? "bg-[#2a1a2f]" : ""
+                            onClick={() => onChatSelect({ id: conversation._id, title: conversation.title })}
+                            className={`mx-2 mb-1 px-3 py-3 rounded-xl cursor-pointer text-gray-300 text-sm transition-colors duration-150 hover:bg-[#2a2a2a] relative ${activeChat?.id === conversation._id ? "bg-[#2a1a2f]" : ""
                                 }`}
                         >
-                            {activeChat === conversation._id && (
+                            {activeChat?.id === conversation._id && (
                                 <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#8b5cf6] rounded-r-full" />
                             )}
                             <div className="flex flex-row justify-between">
@@ -106,7 +116,7 @@ export function ChatList({ collapsed, activeChat, onChatSelect }: { collapsed: b
                                         {new Date(conversation._creationTime).toLocaleString()}
                                     </div>
                                 </div>
-                                <Button className={`bg-transparent hover:bg-[#3a1a2f] ${activeChat === conversation._id ? "" : "hidden"}`} onClick={() => handleDeleteChat(conversation._id)}>
+                                <Button className={`bg-transparent hover:bg-[#3a1a2f] ${activeChat?.id === conversation._id ? "" : "hidden"}`} onClick={() => handleDeleteChat(conversation._id)}>
                                     <Trash />
                                 </Button>
                             </div>
@@ -124,8 +134,8 @@ export function ChatList({ collapsed, activeChat, onChatSelect }: { collapsed: b
                         {filteredConversations.slice(0, 8).map((conversation) => (
                             <button
                                 key={conversation._id}
-                                onClick={() => onChatSelect(conversation._id)}
-                                className={`w-12 h-12 rounded-xl flex items-center justify-center text-xs font-bold transition-colors duration-150 ${activeChat === conversation._id
+                                onClick={() => onChatSelect({ id: conversation._id, title: conversation.title })}
+                                className={`w-12 h-12 rounded-xl flex items-center justify-center text-xs font-bold transition-colors duration-150 ${activeChat?.id === conversation._id
                                     ? "bg-[#2a1a2f] text-white"
                                     : "bg-[#1e1e1e] text-gray-400 hover:bg-[#2a2a2a] hover:text-white"
                                     }`}

@@ -87,7 +87,7 @@ interface ChatMainProps {
     icon: string;
     capabilities: string[];
   }) => void;
-  activeChat: Id<"chats"> | null;
+  activeChat: { id: Id<"chats">, title: string } | null;
   sidebarCollapsed: boolean;
   onToggleSidebar: () => void;
 }
@@ -199,7 +199,7 @@ export function ChatMain({
   const messages =
     useQuery(
       api.chat.getMessages,
-      activeChat ? { conversationId: activeChat } : "skip"
+      activeChat ? { conversationId: activeChat.id } : "skip"
     ) || [];
 
   console.log("messages: ", messages);
@@ -309,7 +309,7 @@ export function ChatMain({
         const newHistory: CoreMessage[] = [...oldHistory, msg];
 
         sendMessage({
-          conversationId: activeChat,
+          conversationId: activeChat.id,
           history: newHistory,
           model: selectedModel.id,
         });
@@ -339,7 +339,7 @@ export function ChatMain({
         // });
 
         sendMessage({
-          conversationId: activeChat,
+          conversationId: activeChat.id,
           history: newHistory,
           model: selectedModel.id,
         });
@@ -367,7 +367,7 @@ export function ChatMain({
       {/* Chat header */}
       <div className="flex items-center justify-between p-4 border-b border-[#2a2a2a] bg-[#1a1a1a]">
         <div className="flex items-center gap-3">
-          <h2 className="text-white font-semibold text-lg">Chat</h2>
+          <h2 className="text-white font-semibold text-lg">{activeChat ? activeChat.title : "Chat"}</h2>
         </div>
         <div className="flex items-center gap-2">
           <Button

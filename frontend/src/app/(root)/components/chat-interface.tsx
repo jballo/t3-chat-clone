@@ -21,7 +21,7 @@ export function ChatInterface() {
     })
 
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
-    const [activeChat, setActiveChat] = useState<Id<"chats"> | null>(null)
+    const [activeChat, setActiveChat] = useState<{ id: Id<"chats">, title: string } | null>(null);
 
     return (
         <>

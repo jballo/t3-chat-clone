@@ -57,4 +57,11 @@ export default defineSchema({
         isComplete: v.boolean(),
         model: v.optional(v.string()),
     }),
+    invites: defineTable({
+        recipient_email: v.string(),
+        author_email: v.string(),
+        chat_id: v.id("chats"),
+        chat_name: v.string(),
+        accepted: v.string(),
+    })
 });
