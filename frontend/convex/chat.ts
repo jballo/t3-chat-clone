@@ -181,7 +181,9 @@ export const streamWithFiles = internalAction({
     const provider = google;
 
     const { textStream } = streamText({
-      model: provider(model),
+      model: provider(model, {
+        useSearchGrounding: true,
+      }),
       system: "You are a professional assistant",
       messages: messages as CoreMessage[],
     })

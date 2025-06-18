@@ -3,6 +3,7 @@
 import { Popover, PopoverContent, PopoverTrigger } from "@/atoms/popover";
 import { ModelDropdownButton } from "./model-dropdown";
 import { Command, CommandEmpty, CommandInput, CommandItem, CommandList } from "@/atoms/command";
+import { Brain, FileText, Globe, ImageIcon, Languages, Zap } from "lucide-react";
 
 interface ModelSelectorProps {
     selectedModel: {
@@ -58,25 +59,44 @@ const allModels = [
     // },
 ]
 
+const capabilityIcons: { [key: string]: React.FC<{ className?: string }> } = {
+    multilingual: Languages,
+    speed: Zap,
+    reasoning: Brain,
+    image: ImageIcon,
+    search: Globe,
+    pdf: FileText,
+};
+
 export function ModelSelector({ selectedModel, setSelectedModel }: ModelSelectorProps) {
     return (
         <Popover>
             <PopoverTrigger>
                 <ModelDropdownButton selectedModel={selectedModel} />
             </PopoverTrigger>
-            <PopoverContent className="p-0">
-                <Command>
-                    <CommandInput placeholder="Type model name here..." />
-                    <CommandList>
-                        <CommandEmpty>No Model Found</CommandEmpty>
+            <PopoverContent className="p-0 bg-[#121212] border border-[#2a2a2a] rounded-lg shadow-lg">
+                <Command className="bg-[#121212] text-gray-300 p-2">
+                    <CommandInput
+                        placeholder="Type model name here..."
+                        className="bg-[#1e1e1e] border border-[#2a2a2a] text-gray-300 rounded-lg h-7 p-2"
+                    />
+                    <CommandList className="bg-[#121212] py-2">
+                        <CommandEmpty className="text-gray-500">No Model Found</CommandEmpty>
                         {allModels.map(model => (
                             <CommandItem
                                 key={model.id}
                                 onSelect={() => {
                                     setSelectedModel(model);
                                 }}
+                                className="flex items-center justify-between"
                             >
-                                {model.name}
+                                <span>{model.name}</span>
+                                <span className="flex gap-2">
+                                    {model.capabilities.map((capability, idx) => {
+                                        const Icon = capabilityIcons[capability];
+                                        return Icon ? <Icon key={idx} className="w-4 h-4 text-gray-300" /> : null;
+                                    })}
+                                </span>
                             </CommandItem>
                         ))}
                         {/* <CommandItem>Llama 4</CommandItem> */}
