@@ -30,7 +30,7 @@ import { ModelSelector } from "./model-selector";
 import { MessageRenderer } from "./MessageRenderer";
 import { UploadButton } from "@/utils/uploadthing";
 import Image from "next/image";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/atoms/dialog";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/atoms/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/atoms/tabs";
 import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { Popover, PopoverContent, PopoverTrigger } from "@/atoms/popover";
@@ -424,16 +424,17 @@ export function ChatMain({
   };
 
 
-  const shareChat = () => {
+  const shareChat = async () => {
     if (!email || email.length < 1) return;
 
     if (!activeChat) return;
 
-    createInvitation({
+    await createInvitation({
       recipient_email: email,
       chat_id: activeChat.id,
       chat_name: activeChat.title
     });
+    setEmail("")
   }
 
   const onBranchChat = async () => {
@@ -521,12 +522,15 @@ export function ChatMain({
                             Coming soon...
                           </TabsContent>
                         </Tabs>
-                        <Button
-                          className="bg-[#3a1a2f] hover:bg-[#4a2a3f] text-white rounded-xl transition-colors duration-200"
-                          onClick={shareChat}
-                        >
-                          Submit
-                        </Button>
+                        <DialogClose asChild>
+                          <Button
+                            className="bg-[#3a1a2f] hover:bg-[#4a2a3f] text-white rounded-xl transition-colors duration-200"
+                            onClick={shareChat}
+                          >
+                            Submit
+                          </Button>
+
+                        </DialogClose>
 
                       </div>
                     </div>
