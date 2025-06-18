@@ -280,8 +280,8 @@ export function ChatSidebar({ collapsed, onToggleCollapse, activeChat, onChatSel
     const { user } = useUser();
     const router = useRouter();
 
-    const navigateToSettings = () => {
-        router.push("/settings")
+    const navigateToLogin = () => {
+        router.push("/sign-in")
     }
 
     return (
@@ -328,7 +328,7 @@ export function ChatSidebar({ collapsed, onToggleCollapse, activeChat, onChatSel
                     <div className="p-4 border-t border-[#2a2a2a]">
                         <div
                             className="flex items-center cursor-pointer hover:bg-[#2a2a2a] rounded-xl p-2 transition-colors duration-200 justify-between"
-                            onClick={navigateToSettings}
+                            onClick={navigateToLogin}
                         >
                             <Authenticated>
                                 <Avatar className="h-10 w-10 mr-3">
@@ -360,7 +360,7 @@ export function ChatSidebar({ collapsed, onToggleCollapse, activeChat, onChatSel
                 ) : (
                     <div className="p-2 border-t border-[#2a2a2a] flex justify-center">
                         <Authenticated>
-                            <Avatar className="h-12 w-12 cursor-pointer transition-colors duration-200" onClick={navigateToSettings}>
+                            <Avatar className="h-12 w-12 cursor-pointer transition-colors duration-200" onClick={navigateToLogin}>
                                 <AvatarImage src="/images/avatar.png" />
                                 <AvatarFallback className="bg-[#3a1a2f] text-white font-bold">JB</AvatarFallback>
                             </Avatar>
@@ -370,7 +370,7 @@ export function ChatSidebar({ collapsed, onToggleCollapse, activeChat, onChatSel
                                 variant="ghost"
                                 size="icon"
                                 className="h-12 w-12 text-gray-400 hover:text-white hover:bg-[#2a2a2a] transition-colors duration-200"
-                                onClick={navigateToSettings}
+                                onClick={navigateToLogin}
                             >
                                 <Settings className="h-4 w-4" />
                             </Button>

@@ -422,9 +422,9 @@ export function ChatMain({
     }
   };
 
-  const navigateToSettings = () => {
-    router.push("/settings");
-  };
+  const navigateToLogin = () => {
+    router.push("/sign-in")
+  }
 
 
   const shareChat = () => {
@@ -572,7 +572,7 @@ export function ChatMain({
             variant="ghost"
             size="icon"
             className="h-9 w-9 text-gray-400 hover:text-white hover:bg-[#2a2a2a] rounded-xl transition-colors duration-200"
-            onClick={navigateToSettings}
+            onClick={navigateToLogin}
           >
             <Settings className="h-5 w-5" />
           </Button>
