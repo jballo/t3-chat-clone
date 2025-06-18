@@ -36,6 +36,7 @@ import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { Popover, PopoverContent, PopoverTrigger } from "@/atoms/popover";
 import { Card, CardContent, CardFooter, CardHeader } from "@/atoms/card";
 import { SignInButton, SignOutButton } from "@clerk/nextjs";
+import { Textarea } from "@/atoms/textarea";
 
 interface CoreTextPart {
   type: "text";
@@ -680,13 +681,13 @@ export function ChatMain({
 
             })}
           </div>
-          <div className="relative bg-teal-300">
-            <Input
+          <div className="relative">
+            <Textarea
               placeholder="Type your message here..."
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={handleKeyPress}
-              className="pr-32 pl-6 py-6 bg-[#1e1e1e] border-[#3a3a3a] text-white rounded-2xl focus:border-[#3a1a2f] focus:ring-2 focus:ring-[#3a1a2f]/25 transition-colors duration-200 text-base"
+              className="pr-32 pl-6 py-3 bg-[#1e1e1e] border-[#3a3a3a] text-white rounded-2xl focus:border-[#3a1a2f] focus:ring-2 focus:ring-[#3a1a2f]/25 transition-colors duration-200 text-base"
             />
             <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
               {(selectedModel.capabilities.includes('image') || selectedModel.capabilities.includes('pdf')) && (
