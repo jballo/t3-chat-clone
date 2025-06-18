@@ -315,7 +315,11 @@ export function ChatSidebar({ collapsed, onToggleCollapse, activeChat, onChatSel
                         <ChatList collapsed={collapsed} activeChat={activeChat} onChatSelect={onChatSelect} activeTab={activeTab} setActiveTab={setActiveTab} />
                     </Authenticated>
                     <Unauthenticated>
-                        Sign In To View/Create Chats
+                        <div className="flex flex-col items-center justify-center flex-1 overflow-y-auto">
+                            <p className="text-white text-center">
+                                Sign In To View/Create Chats
+                            </p>
+                        </div>
                     </Unauthenticated>
                 </>
                 {!collapsed ? (
