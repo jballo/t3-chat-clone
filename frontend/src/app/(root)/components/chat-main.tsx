@@ -23,7 +23,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/atoms/button";
 import { Input } from "@/atoms/input";
 import { Id } from "../../../../convex/_generated/dataModel";
-import { useAction, useConvexAuth, useMutation, useQuery } from "convex/react";
+import { Authenticated, Unauthenticated, useAction, useConvexAuth, useMutation, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { ModelSelector } from "./model-selector";
 import { MessageRenderer } from "./MessageRenderer";
@@ -189,6 +189,52 @@ export function ChatMessages({ messages }: ChatMessagesProps) {
   );
 }
 
+export function InvitationList() {
+  const pendingInvitations = useQuery(api.chat.getPendingInvitations);
+  const acceptInvite = useMutation(api.chat.acceptInvitation);
+  const denyInvite = useMutation(api.chat.denyInvitation);
+
+  return (
+    <>
+      {(pendingInvitations && pendingInvitations.length > 0) ? (pendingInvitations.map(invitation => (
+        <div key={invitation._id} className="flex flex-col gap-2 p-3 border border-[#2a2a2a] rounded-xl mb-2">
+          <p className="text-base font-bold text-white">
+            {invitation.chat_name}
+          </p>
+          <p className="text-sm text-gray-400">
+            {invitation.author_email} shared a chat.
+          </p>
+          <div className="flex flex-row items-center justify-between">
+            <p className="text-sm text-gray-500">
+              {new Date(invitation._creationTime).toLocaleDateString()}
+            </p>
+            <div className="flex flex-row gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-gray-400 hover:text-white hover:bg-[#2a2a2a] rounded-xl"
+                onClick={() => denyInvite({ invitation_id: invitation._id })}
+              >
+                <XIcon className="h-4 w-4" />
+              </Button>
+              <Button
+                className="bg-[#3a1a2f] hover:bg-[#4a2a3f] text-white rounded-xl px-3 py-1 text-sm"
+                onClick={() => acceptInvite({ invitation_id: invitation._id })}
+              >
+                <Check className="h-4 w-4 mr-1" /> Accept
+              </Button>
+            </div>
+          </div>
+        </div>
+      ))) : (
+        <div className="flex flex-col gap-2 p-3 border border-[#2a2a2a] rounded-xl mb-2">
+          No Invitations
+        </div>
+      )}
+    </>
+  );
+}
+
 interface File {
   type: string,
   data: string,
@@ -218,13 +264,7 @@ export function ChatMain({
   const createChat = useAction(api.chat.createChat);
   const uploadImages = useMutation(api.chat.uploadImages);
   const createInvitation = useMutation(api.chat.createInvitation);
-  const pendingInvitations = useQuery(api.chat.getPendingInvitations);
-  const acceptInvite = useMutation(api.chat.acceptInvitation);
-  const denyInvite = useMutation(api.chat.denyInvitation);
 
-  useEffect(() => {
-    console.log("pendingInvitations: ", pendingInvitations);
-  }, [pendingInvitations]);
 
   const handleSendMessage = () => {
     if (isLoading || !isAuthenticated) return;
@@ -487,41 +527,13 @@ export function ChatMain({
                   Chat Invitations
                 </CardHeader>
                 <CardContent>
-                  {(pendingInvitations && pendingInvitations.length > 0) ? (pendingInvitations.map(invitation => (
-                    <div key={invitation._id} className="flex flex-col gap-2 p-3 border border-[#2a2a2a] rounded-xl mb-2">
-                      <p className="text-base font-bold text-white">
-                        {invitation.chat_name}
-                      </p>
-                      <p className="text-sm text-gray-400">
-                        {invitation.author_email} shared a chat.
-                      </p>
-                      <div className="flex flex-row items-center justify-between">
-                        <p className="text-sm text-gray-500">
-                          {new Date(invitation._creationTime).toLocaleDateString()}
-                        </p>
-                        <div className="flex flex-row gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-gray-400 hover:text-white hover:bg-[#2a2a2a] rounded-xl"
-                            onClick={() => denyInvite({ invitation_id: invitation._id })}
-                          >
-                            <XIcon className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            className="bg-[#3a1a2f] hover:bg-[#4a2a3f] text-white rounded-xl px-3 py-1 text-sm"
-                            onClick={() => acceptInvite({ invitation_id: invitation._id })}
-                          >
-                            <Check className="h-4 w-4 mr-1" /> Accept
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  ))) : (
-                    <div className="flex flex-col gap-2 p-3 border border-[#2a2a2a] rounded-xl mb-2">
-                      No Invitations
-                    </div>
-                  )}
+                  <Authenticated>
+                    <InvitationList />
+                  </Authenticated>
+                  <Unauthenticated>
+                    <p>Sign In to view invitations</p>
+                  </Unauthenticated>
+
                 </CardContent>
                 <CardFooter className="hidden">
                   View All
