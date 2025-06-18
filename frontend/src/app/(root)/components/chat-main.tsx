@@ -9,7 +9,6 @@ import {
   Code,
   BookOpen,
   Sparkles,
-  Settings,
   Send,
   Ellipsis,
   LoaderCircle,
@@ -19,8 +18,9 @@ import {
   Bell,
   Check,
   GitBranch,
+  LogOut,
+  LogIn,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { Button } from "@/atoms/button";
 import { Input } from "@/atoms/input";
 import { Id } from "../../../../convex/_generated/dataModel";
@@ -35,6 +35,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/atoms/tabs";
 import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { Popover, PopoverContent, PopoverTrigger } from "@/atoms/popover";
 import { Card, CardContent, CardFooter, CardHeader } from "@/atoms/card";
+import { SignInButton, SignOutButton } from "@clerk/nextjs";
 
 interface CoreTextPart {
   type: "text";
@@ -249,7 +250,6 @@ export function ChatMain({
   setSelectedModel,
   activeTab
 }: ChatMainProps) {
-  const router = useRouter();
   const { isLoading, isAuthenticated } = useConvexAuth();
   const [message, setMessage] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
@@ -422,10 +422,6 @@ export function ChatMain({
     }
   };
 
-  const navigateToSettings = () => {
-    router.push("/settings");
-  };
-
 
   const shareChat = () => {
     if (!email || email.length < 1) return;
@@ -537,117 +533,126 @@ export function ChatMain({
                 </Dialog>
               </>
             )}
-          </Authenticated>
-          <Popover>
-            <PopoverTrigger asChild>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 text-gray-400 hover:text-white hover:bg-[#2a2a2a] rounded-xl transition-colors duration-200"
+                >
+                  <Bell className="h-5 w-5" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="bg-[#1e1e1e] border-none p-0 w-80">
+                <Card className="bg-[#1e1e1e] border-[1px] border-[#2a2a2a] text-white">
+                  <CardHeader className="text-lg font-semibold">
+                    Chat Invitations
+                  </CardHeader>
+                  <CardContent>
+                    <Authenticated>
+                      <InvitationList />
+                    </Authenticated>
+                    <Unauthenticated>
+                      <p>Sign In to view invitations</p>
+                    </Unauthenticated>
+
+                  </CardContent>
+                  <CardFooter className="hidden">
+                    View All
+                  </CardFooter>
+                </Card>
+              </PopoverContent>
+            </Popover>
+            <SignOutButton>
               <Button
                 variant="ghost"
                 size="icon"
                 className="h-9 w-9 text-gray-400 hover:text-white hover:bg-[#2a2a2a] rounded-xl transition-colors duration-200"
               >
-                <Bell className="h-5 w-5" />
+                <LogOut className="h-5 w-5" />
               </Button>
-            </PopoverTrigger>
-            <PopoverContent className="bg-[#1e1e1e] border-none p-0 w-80">
-              <Card className="bg-[#1e1e1e] border-[1px] border-[#2a2a2a] text-white">
-                <CardHeader className="text-lg font-semibold">
-                  Chat Invitations
-                </CardHeader>
-                <CardContent>
-                  <Authenticated>
-                    <InvitationList />
-                  </Authenticated>
-                  <Unauthenticated>
-                    <p>Sign In to view invitations</p>
-                  </Unauthenticated>
+            </SignOutButton>
+          </Authenticated>
+          <Unauthenticated>
+            <SignInButton>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 text-gray-400 hover:text-white hover:bg-[#2a2a2a] rounded-xl transition-colors duration-200"
+              >
+                <LogIn className="h-5 w-5" />
+              </Button>
 
-                </CardContent>
-                <CardFooter className="hidden">
-                  View All
-                </CardFooter>
-              </Card>
-            </PopoverContent>
-          </Popover>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-9 w-9 text-gray-400 hover:text-white hover:bg-[#2a2a2a] rounded-xl transition-colors duration-200"
-            onClick={navigateToSettings}
-          >
-            <Settings className="h-5 w-5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-9 w-9 text-gray-400 hover:text-white hover:bg-[#2a2a2a] rounded-xl transition-colors duration-200"
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="text-current"
-            >
-              <path
-                d="M12 3V3.01M12 21V21.01M21 12H20.99M3 12H3.01M18.364 18.364L18.354 18.354M5.636 5.636L5.646 5.646M18.364 5.636L18.354 5.646M5.636 18.364L5.646 18.354"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </Button>
+            </SignInButton>
+          </Unauthenticated>
         </div>
       </div>
 
       {/* Chat messages */}
-      {activeChat ? (
-        <ChatMessages messages={messages} />
-      ) : (
-        <div className="flex-1 overflow-y-auto p-6">
-          <div className="max-w-4xl mx-auto">
-            <div className="grid grid-cols-2 gap-4 mt-8 max-w-2xl mx-auto">
-              <Button
-                variant="outline"
-                className="flex items-center justify-start gap-3 h-16 bg-[#1e1e1e] border-[#3a3a3a] hover:bg-[#2a2a2a] text-white rounded-2xl transition-colors duration-200"
-              >
-                <div className="w-10 h-10 bg-[#3a1a2f] rounded-xl flex items-center justify-center">
-                  <Sparkles className="h-5 w-5 text-white" />
+      <div className="flex-1 overflow-y-auto">
+        <Authenticated>
+          {activeChat ? (
+            <ChatMessages messages={messages} />
+          ) : (
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="max-w-4xl mx-auto">
+                <div className="mb-8">
+                  <div className="flex justify-start">
+                    <div className="max-w-[80%] bg-[#2a2a2a] text-gray-500 rounded-2xl rounded-bl-md px-4 py-3">
+                      Send a message to start a new conversation...
+                    </div>
+                  </div>
                 </div>
-                <span className="font-medium">Create</span>
-              </Button>
-              <Button
-                variant="outline"
-                className="flex items-center justify-start gap-3 h-16 bg-[#1e1e1e] border-[#3a3a3a] hover:bg-[#2a2a2a] text-white rounded-2xl transition-colors duration-200"
-              >
-                <div className="w-10 h-10 bg-[#3a1a2f] rounded-xl flex items-center justify-center">
-                  <HighlightIcon className="h-5 w-5 text-white" />
-                </div>
-                <span className="font-medium">Explore</span>
-              </Button>
-              <Button
-                variant="outline"
-                className="flex items-center justify-start gap-3 h-16 bg-[#1e1e1e] border-[#3a3a3a] hover:bg-[#2a2a2a] text-white rounded-2xl transition-colors duration-200"
-              >
-                <div className="w-10 h-10 bg-[#3a1a2f] rounded-xl flex items-center justify-center">
-                  <Code className="h-5 w-5 text-white" />
-                </div>
-                <span className="font-medium">Code</span>
-              </Button>
-              <Button
-                variant="outline"
-                className="flex items-center justify-start gap-3 h-16 bg-[#1e1e1e] border-[#3a3a3a] hover:bg-[#2a2a2a] text-white rounded-2xl transition-colors duration-200"
-              >
-                <div className="w-10 h-10 bg-[#3a1a2f] rounded-xl flex items-center justify-center">
-                  <BookOpen className="h-5 w-5 text-white" />
-                </div>
-                <span className="font-medium">Learn</span>
-              </Button>
+              </div>
+            </div>
+          )}
+        </Authenticated>
+        <Unauthenticated>
+          <div className="flex-1 overflow-y-auto p-6">
+            <div className="max-w-4xl mx-auto">
+              <div className="grid grid-cols-2 gap-4 mt-8 max-w-2xl mx-auto">
+                <Button
+                  variant="outline"
+                  className="flex items-center justify-start gap-3 h-16 bg-[#1e1e1e] border-[#3a3a3a] hover:bg-[#2a2a2a] text-white rounded-2xl transition-colors duration-200"
+                >
+                  <div className="w-10 h-10 bg-[#3a1a2f] rounded-xl flex items-center justify-center">
+                    <Sparkles className="h-5 w-5 text-white" />
+                  </div>
+                  <span className="font-medium">Create</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="flex items-center justify-start gap-3 h-16 bg-[#1e1e1e] border-[#3a3a3a] hover:bg-[#2a2a2a] text-white rounded-2xl transition-colors duration-200"
+                >
+                  <div className="w-10 h-10 bg-[#3a1a2f] rounded-xl flex items-center justify-center">
+                    <HighlightIcon className="h-5 w-5 text-white" />
+                  </div>
+                  <span className="font-medium">Explore</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="flex items-center justify-start gap-3 h-16 bg-[#1e1e1e] border-[#3a3a3a] hover:bg-[#2a2a2a] text-white rounded-2xl transition-colors duration-200"
+                >
+                  <div className="w-10 h-10 bg-[#3a1a2f] rounded-xl flex items-center justify-center">
+                    <Code className="h-5 w-5 text-white" />
+                  </div>
+                  <span className="font-medium">Code</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="flex items-center justify-start gap-3 h-16 bg-[#1e1e1e] border-[#3a3a3a] hover:bg-[#2a2a2a] text-white rounded-2xl transition-colors duration-200"
+                >
+                  <div className="w-10 h-10 bg-[#3a1a2f] rounded-xl flex items-center justify-center">
+                    <BookOpen className="h-5 w-5 text-white" />
+                  </div>
+                  <span className="font-medium">Learn</span>
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+
+        </Unauthenticated>
+      </div>
 
       {/* Message input */}
       <div className="p-6 border-t border-[#2a2a2a] bg-[#1a1a1a]">
