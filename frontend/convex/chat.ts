@@ -589,3 +589,40 @@ export const leaveSharedChat = mutation({
     await ctx.db.delete(optimalInvite._id); 
   }
 })
+
+
+export const branchChat = mutation({
+    args: {
+      title: v.string(),
+      conversation_id: v.id("chats")
+    },
+    handler: async (ctx, args) => {
+      const identity = await ctx.auth.getUserIdentity();
+      if (identity === null) {
+        throw new Error("Not authenticated");
+      }
+      const user_id = identity.subject;
+
+      const { title, conversation_id } = args;
+
+      const new_conversation_id = await ctx.db.insert("chats", {
+        user_id: user_id,
+        title: title
+      });
+
+      const messages = await ctx.db
+        .query("messages")
+        .withIndex("by_chatId", (q) => q.eq("chat_id", conversation_id))
+        .collect();
+
+      for (const msg of messages) {
+        await ctx.db.insert("messages", {
+          author_id: msg.author_id,
+          chat_id: new_conversation_id,
+          message: msg.message,
+          isComplete: msg.isComplete,
+          model: msg.model
+        });
+      }
+    }
+})
