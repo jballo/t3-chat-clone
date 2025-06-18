@@ -517,6 +517,8 @@ export function ChatMain({
                           </TabsList>
                           <TabsContent value="edit" className="mt-2 text-gray-300">
                             Let another user add additions to this chat.
+                            <br />
+                            <strong>IMPORTANT</strong>: User must already be signed up.
                           </TabsContent>
                           <TabsContent value="view" className="mt-2 text-gray-300">
                             Coming soon...
