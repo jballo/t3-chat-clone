@@ -306,7 +306,9 @@ export function ChatSidebar({ collapsed, onToggleCollapse, activeChat, onChatSel
                     </button>
                     {!collapsed && (
                         <div className="flex items-center">
-                            <h1 className="text-white text-xl font-bold">T3.chat</h1>
+                            <h1 className="text-white text-xl font-bold flex items-center">
+                                T<span className="text-4xl ml-1 mr-1 pb-1 align-middle text-[#8f296c]" >∞</span>.chat
+                            </h1>
                         </div>
                     )}
                 </div>
