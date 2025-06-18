@@ -35,28 +35,28 @@ const coreTextPart = v.object({
   });
 
 export default defineSchema({
-    tasks: defineTable({
-        isCompleted: v.boolean(),
-        text: v.string(),
-      }),
     chats: defineTable({ 
         user_id: v.string(),
         title: v.string(), 
-    }),
+    })
+    .index("by_user", ["user_id"]),
     files: defineTable({
         name: v.string(),
         url: v.string(),
         mimeType: v.string(),
         size: v.number(),
         authorId: v.string(),
-    }),
+    })
+    .index("by_author", ["authorId"]),
     messages: defineTable({
         author_id: v.string(),
         chat_id: v.id("chats"),
         message: coreMessage,
         isComplete: v.boolean(),
         model: v.optional(v.string()),
-    }),
+    })
+    .index("by_author", ["author_id"])
+    .index("by_chatId", ["chat_id"]),
     invites: defineTable({
         recipient_email: v.string(),
         author_email: v.string(),
@@ -64,4 +64,5 @@ export default defineSchema({
         chat_name: v.string(),
         status: v.string(),
     })
+    .index("by_recipient_email", ["recipient_email"])
 });

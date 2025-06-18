@@ -16,15 +16,19 @@ interface ChatSidebarProps {
     onToggleCollapse: () => void
     activeChat: { id: Id<"chats">, title: string } | null
     onChatSelect: (chatId: { id: Id<"chats">, title: string } | null) => void
+    activeTab: "myChats" | "shared"
+    setActiveTab: (tabVal: "myChats" | "shared") => void
 }
 
 interface ChatListProps {
     collapsed: boolean
     activeChat: { id: Id<"chats">, title: string } | null
     onChatSelect: (chatId: { id: Id<"chats">, title: string } | null) => void
+    activeTab: "myChats" | "shared"
+    setActiveTab: (tabVal: "myChats" | "shared") => void
 }
 
-export function ChatList({ collapsed, activeChat, onChatSelect }: ChatListProps) {
+export function ChatList({ collapsed, activeChat, onChatSelect, activeTab, setActiveTab }: ChatListProps) {
     const [searchQuery, setSearchQuery] = useState("");
 
     const conversations = useQuery(api.chat.getChats) || [];
@@ -34,7 +38,8 @@ export function ChatList({ collapsed, activeChat, onChatSelect }: ChatListProps)
 
 
     useEffect(() => {
-        console.log("New convo")
+        if (activeTab !== "myChats") return;
+
         if (conversations.length > 0) {
 
             onChatSelect({
@@ -46,8 +51,20 @@ export function ChatList({ collapsed, activeChat, onChatSelect }: ChatListProps)
         }
     }, [conversations]);
 
+
     useEffect(() => {
         console.log("Accepted chats: ", sharedChats);
+        if (activeTab !== "shared") return;
+
+        if (sharedChats.length > 0) {
+            onChatSelect({
+                id: sharedChats[0]._id,
+                title: sharedChats[0].title
+            });
+        } else {
+            onChatSelect(null);
+        }
+
     }, [sharedChats]);
 
 
@@ -79,16 +96,16 @@ export function ChatList({ collapsed, activeChat, onChatSelect }: ChatListProps)
     // }, [filteredConversations])
 
 
-    const handleDeleteChat = (id: Id<"chats">) => {
-        deleteChat({ conversationId: id });
+    const handleDeleteChat = async (id: Id<"chats">) => {
+        await deleteChat({ conversationId: id });
     }
 
-    const handleLeaveChat = (id: Id<"chats">) => {
+    const handleLeaveChat = async (id: Id<"chats">) => {
         console.log("leaving chat...");
-        leaveSharedChat({
+        await leaveSharedChat({
             chat_id: id
         });
-        onChatSelect(null);
+        // onChatSelect(null);
     }
 
     return (
@@ -104,7 +121,7 @@ export function ChatList({ collapsed, activeChat, onChatSelect }: ChatListProps)
                         </Button>
                     </div>
                     <div className="px-4 pt-4 pb-2">
-                        <Tabs defaultValue="myChats">
+                        <Tabs defaultValue="myChats" value={activeTab}>
                             <div className="relative">
                                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                                 <Input
@@ -118,12 +135,14 @@ export function ChatList({ collapsed, activeChat, onChatSelect }: ChatListProps)
                                 <TabsTrigger
                                     value="myChats"
                                     className="text-gray-300 data-[state=active]:bg-[#3a1a2f] data-[state=active]:text-white"
+                                    onClick={() => setActiveTab("myChats")}
                                 >
                                     My Chats
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="shared"
                                     className="text-gray-300 data-[state=active]:bg-[#3a1a2f] data-[state=active]:text-white"
+                                    onClick={() => setActiveTab("shared")}
                                 >
                                     Shared
                                 </TabsTrigger>
@@ -215,7 +234,7 @@ export function ChatList({ collapsed, activeChat, onChatSelect }: ChatListProps)
     );
 }
 
-export function ChatSidebar({ collapsed, onToggleCollapse, activeChat, onChatSelect }: ChatSidebarProps) {
+export function ChatSidebar({ collapsed, onToggleCollapse, activeChat, onChatSelect, activeTab, setActiveTab }: ChatSidebarProps) {
     const router = useRouter();
 
     const navigateToSettings = () => {
@@ -252,7 +271,7 @@ export function ChatSidebar({ collapsed, onToggleCollapse, activeChat, onChatSel
             <>
                 <>
                     <Authenticated>
-                        <ChatList collapsed={collapsed} activeChat={activeChat} onChatSelect={onChatSelect} />
+                        <ChatList collapsed={collapsed} activeChat={activeChat} onChatSelect={onChatSelect} activeTab={activeTab} setActiveTab={setActiveTab} />
                     </Authenticated>
                     <Unauthenticated>
                         Sign In To View/Create Chats

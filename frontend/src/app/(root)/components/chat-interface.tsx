@@ -22,6 +22,7 @@ export function ChatInterface() {
 
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
     const [activeChat, setActiveChat] = useState<{ id: Id<"chats">, title: string } | null>(null);
+    const [activeTab, setActiveTab] = useState<"myChats" | "shared">("myChats");
 
     return (
         <>
@@ -30,6 +31,8 @@ export function ChatInterface() {
                 onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
                 activeChat={activeChat}
                 onChatSelect={setActiveChat}
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
             />
             <div className="flex-1 flex flex-col">
                 <ChatMain

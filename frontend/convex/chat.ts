@@ -343,15 +343,21 @@ export const getChats = query({
 
     const user_id = identity.subject;
 
-    const chats = await ctx.db
+    // const chats = await ctx.db
+    //   .query("chats")
+    //   .filter((q) => q.eq(q.field("user_id"), user_id))
+    //   .order("desc")
+    //   .collect();
+
+    const optimalChats = await ctx.db
       .query("chats")
-      .filter((q) => q.eq(q.field("user_id"), user_id))
+      .withIndex("by_user", (q) => q.eq("user_id", user_id))
       .order("desc")
       .collect();
 
-    console.log("Chats: ", chats);
+    console.log("Chats: ", optimalChats);
 
-    return chats;
+    return optimalChats;
   },
 });
 
@@ -361,12 +367,17 @@ export const getMessages = query({
     // return all the messages for the appropirate conversation
     const conversation_id = args.conversationId;
 
-    const messages = await ctx.db
-      .query("messages")
-      .filter((q) => q.eq(q.field("chat_id"), conversation_id))
-      .collect();
+    // const messages = await ctx.db
+    //   .query("messages")
+    //   .filter((q) => q.eq(q.field("chat_id"), conversation_id))
+    //   .collect();
 
-    return messages;
+      const optimalMessages = await ctx.db
+        .query("messages")
+        .withIndex("by_chatId", (q) => q.eq("chat_id", conversation_id))
+        .collect();
+
+    return optimalMessages;
   },
 });
 
@@ -473,13 +484,19 @@ export const getPendingInvitations = query({
     const email = identity.email;
     if (!email) {throw new Error("Failed to get user email");}
 
-    const invites = await ctx.db
+    // const invites = await ctx.db
+    //   .query("invites")
+    //   .filter((q) => q.eq(q.field("recipient_email"), email))
+      // .filter((q) => q.eq(q.field("status"), "pending"))
+    //   .collect();
+
+    const optimalInvites = await ctx.db
       .query("invites")
-      .filter((q) => q.eq(q.field("recipient_email"), email))
+      .withIndex("by_recipient_email", (q) => q.eq("recipient_email", email))
       .filter((q) => q.eq(q.field("status"), "pending"))
       .collect();
 
-    return invites;
+    return optimalInvites;
   }
 })
 
@@ -494,18 +511,24 @@ export const getAcceptedChats = query({
     const email = identity.email;
     if (!email) {throw new Error("Failed to get user email");}
 
-    const invites = await ctx.db
+    // const invites = await ctx.db
+    //   .query("invites")
+    //   .filter((q) => q.eq(q.field("recipient_email"), email))
+    //   .filter((q) => q.eq(q.field("status"), "accepted"))
+    //   .collect();
+
+    const optimalInvites = await ctx.db
       .query("invites")
-      .filter((q) => q.eq(q.field("recipient_email"), email))
+      .withIndex("by_recipient_email", (q) => q.eq("recipient_email", email))
       .filter((q) => q.eq(q.field("status"), "accepted"))
       .collect();
 
-    const chatIds = invites.map((invite) => invite.chat_id);
+    const chatIds = optimalInvites.map((invite) => invite.chat_id);
     const chats = await ctx.db
       .query("chats")
       .filter((q) => q.or(...chatIds.map(id => q.eq(q.field("_id"), id))))
       .collect();
-        
+
     return chats;
   }
 })
@@ -538,15 +561,31 @@ export const leaveSharedChat = mutation({
     chat_id: v.id("chats")
   },
   handler: async (ctx, args) => {
+
+    const identity = await ctx.auth.getUserIdentity();
+    if (identity === null) {
+      throw new Error("Not authenticated");
+    }
+    
+    const email = identity.email;
+    if (!email) {throw new Error("Failed to get user email");}
+    
     const { chat_id } = args;
     
-    const invite = await ctx.db
+    // const invite = await ctx.db
+    //   .query("invites")
+      // .filter((q) => q.eq(q.field("chat_id"), chat_id))
+    //   .first();
+
+    const optimalInvite = await ctx.db
       .query("invites")
+      .withIndex("by_recipient_email", (q) => q.eq("recipient_email", email))
       .filter((q) => q.eq(q.field("chat_id"), chat_id))
       .first();
 
-    if (!invite) throw new Error("Invitation not found");
 
-    await ctx.db.delete(invite._id); 
+    if (!optimalInvite) throw new Error("Invitation not found");
+
+    await ctx.db.delete(optimalInvite._id); 
   }
 })
