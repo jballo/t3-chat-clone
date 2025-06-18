@@ -41,6 +41,7 @@ export function ChatInterface() {
                     activeChat={activeChat}
                     sidebarCollapsed={sidebarCollapsed}
                     onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)}
+                    activeTab={activeTab}
                 />
             </div>
         </>
