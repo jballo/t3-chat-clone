@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { Search, Settings, Plus, Trash, LogOut } from "lucide-react"
+import { Search, Settings, Plus, Trash, LogOut, Users, MessageSquare } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/atoms/button"
 import { Input } from "@/atoms/input"
@@ -10,6 +10,8 @@ import { Authenticated, Unauthenticated, useMutation, useQuery } from "convex/re
 import { api } from "../../../../convex/_generated/api"
 import { Id } from "../../../../convex/_generated/dataModel"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/atoms/tabs"
+import clsx from "clsx"
+import { Separator } from "@/atoms/separator"
 
 interface ChatSidebarProps {
     collapsed: boolean
@@ -109,8 +111,8 @@ export function ChatList({ collapsed, activeChat, onChatSelect, activeTab, setAc
     }
 
     return (
-        <>
-            {!collapsed && (
+        <div className="flex-1 overflow-y-auto">
+            {!collapsed ? (
                 <>
                     <div className="px-4 pt-4 pb-2">
                         <Button className="w-full bg-[#3a1a2f] hover:bg-[#4a2a3f] text-white rounded-xl h-11 font-medium transition-colors duration-200"
@@ -200,37 +202,76 @@ export function ChatList({ collapsed, activeChat, onChatSelect, activeTab, setAc
                         </Tabs>
                     </div>
                 </>
-            )}
+            ) : (
+                <div className="flex flex-col items-center gap-3 p-2">
+                    <button
+                        onClick={() => onChatSelect(null)}
+                        className={clsx(`w-12 h-12 rounded-xl flex items-center justify-center text-xs font-bold transition-colors duration-150 text-white bg-[#3a1a2f] hover:bg-[#4a2a3f]`)}
+                    >
+                        <Plus className="w-4 h-4" />
+                    </button>
+                    <Separator className="border-[0.5px] border-[#3a3a3a]" />
 
-            <div className="flex-1 overflow-y-auto">
-                {!collapsed ? (
-                    <p>lol</p>
-                ) : (
-                    <div className="flex flex-col items-center gap-2 p-2">
-                        <button
-                            onClick={() => onChatSelect(null)}
-                            className={`w-12 h-12 rounded-xl flex items-center justify-center text-xs font-bold transition-colors duration-150 text-white bg-[#3a1a2f] hover:bg-[#4a2a3f]`}
-                        >
-                            <Plus className="w-4 h-4" />
-                        </button>
-                        <br />
-                        {filteredConversations.slice(0, 8).map((conversation) => (
-                            <button
-                                key={conversation._id}
-                                onClick={() => onChatSelect({ id: conversation._id, title: conversation.title })}
-                                className={`w-12 h-12 rounded-xl flex items-center justify-center text-xs font-bold transition-colors duration-150 ${activeChat?.id === conversation._id
-                                    ? "bg-[#2a1a2f] text-white"
-                                    : "bg-[#1e1e1e] text-gray-400 hover:bg-[#2a2a2a] hover:text-white"
-                                    }`}
-                                title={conversation.title}
-                            >
-                                {conversation.title.slice(0, 2).toUpperCase()}
-                            </button>
-                        ))}
-                    </div>
-                )}
-            </div >
-        </>
+                    <Button
+                        onClick={() => setActiveTab("myChats")}
+                        className={clsx(
+                            "w-12 h-12 rounded-xl flex items-center justify-center text-xs font-bold transition-colors duration-150",
+                            activeTab === "myChats"
+                                ? "bg-[#3a1a2f] hover:bg-[#4a2a3f] text-white"
+                                : "bg-[#1e1e1e] text-gray-400 hover:bg-[#2a2a2a] hover:text-white"
+                        )}
+                    >
+                        <MessageSquare className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        onClick={() => setActiveTab("shared")}
+                        className={clsx(
+                            "w-12 h-12 rounded-xl flex items-center justify-center text-xs font-bold transition-colors duration-150",
+                            activeTab === "shared"
+                                ? "bg-[#3a1a2f] hover:bg-[#4a2a3f] text-white"
+                                : "bg-[#1e1e1e] text-gray-400 hover:bg-[#2a2a2a] hover:text-white"
+                        )}
+                    >
+                        <Users className="h-4 w-4" />
+                    </Button>
+                    <Separator className="border-[0.5px] border-[#3a3a3a]" />
+
+                    {(activeTab === "myChats") ? (
+                        <>
+                            {filteredConversations.slice(0, 8).map((conversation) => (
+                                <button
+                                    key={conversation._id}
+                                    onClick={() => onChatSelect({ id: conversation._id, title: conversation.title })}
+                                    className={`w-12 h-12 rounded-xl flex items-center justify-center text-xs font-bold transition-colors duration-150 ${activeChat?.id === conversation._id
+                                        ? "bg-[#2a1a2f] text-white"
+                                        : "bg-[#1e1e1e] text-gray-400 hover:bg-[#2a2a2a] hover:text-white"
+                                        }`}
+                                    title={conversation.title}
+                                >
+                                    {conversation.title.slice(0, 2).toUpperCase()}
+                                </button>
+                            ))}
+                        </>
+                    ) : (
+                        <>
+                            {filteredSharedChats.slice(0, 8).map((conversation) => (
+                                <button
+                                    key={conversation._id}
+                                    onClick={() => onChatSelect({ id: conversation._id, title: conversation.title })}
+                                    className={`w-12 h-12 rounded-xl flex items-center justify-center text-xs font-bold transition-colors duration-150 ${activeChat?.id === conversation._id
+                                        ? "bg-[#2a1a2f] text-white"
+                                        : "bg-[#1e1e1e] text-gray-400 hover:bg-[#2a2a2a] hover:text-white"
+                                        }`}
+                                    title={conversation.title}
+                                >
+                                    {conversation.title.slice(0, 2).toUpperCase()}
+                                </button>
+                            ))}
+                        </>
+                    )}
+                </div>
+            )}
+        </div>
     );
 }
 
