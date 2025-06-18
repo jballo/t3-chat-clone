@@ -12,6 +12,7 @@ import { Id } from "../../../../convex/_generated/dataModel"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/atoms/tabs"
 import clsx from "clsx"
 import { Separator } from "@/atoms/separator"
+import { useUser } from "@clerk/nextjs"
 
 interface ChatSidebarProps {
     collapsed: boolean
@@ -276,6 +277,7 @@ export function ChatList({ collapsed, activeChat, onChatSelect, activeTab, setAc
 }
 
 export function ChatSidebar({ collapsed, onToggleCollapse, activeChat, onChatSelect, activeTab, setActiveTab }: ChatSidebarProps) {
+    const { user } = useUser();
     const router = useRouter();
 
     const navigateToSettings = () => {
@@ -316,7 +318,7 @@ export function ChatSidebar({ collapsed, onToggleCollapse, activeChat, onChatSel
                     </Authenticated>
                     <Unauthenticated>
                         <div className="flex flex-col items-center justify-center flex-1 overflow-y-auto">
-                            <p className="text-white text-center">
+                            <p className="text-white text-sm text-center p-5">
                                 Sign In To View/Create Chats
                             </p>
                         </div>
@@ -325,20 +327,27 @@ export function ChatSidebar({ collapsed, onToggleCollapse, activeChat, onChatSel
                 {!collapsed ? (
                     <div className="p-4 border-t border-[#2a2a2a]">
                         <div
-                            className="flex items-center cursor-pointer hover:bg-[#2a2a2a] rounded-xl p-2 transition-colors duration-200"
+                            className="flex items-center cursor-pointer hover:bg-[#2a2a2a] rounded-xl p-2 transition-colors duration-200 justify-between"
                             onClick={navigateToSettings}
                         >
-                            <Avatar className="h-10 w-10 mr-3">
-                                <AvatarImage src="/images/avatar.png" />
-                                <AvatarFallback className="bg-[#3a1a2f] text-white font-bold">JB</AvatarFallback>
-                            </Avatar>
-                            <div className="flex-1 flex flex-col">
-                                <span className="text-sm font-medium text-white">Jonathan Ballona Sanchez</span>
-                                <div className="flex items-center">
-                                    <span className="text-xs text-[#8b5cf6] font-medium">Pro</span>
-                                    <div className="w-1 h-1 bg-green-500 rounded-full ml-2" />
+                            <Authenticated>
+                                <Avatar className="h-10 w-10 mr-3">
+                                    <AvatarImage src={user?.imageUrl} />
+                                    <AvatarFallback className="bg-[#3a1a2f] text-white font-bold">User</AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1 flex flex-col">
+                                    <span className="text-sm font-medium text-white">{user?.fullName}</span>
+                                    <div className="flex items-center">
+                                        <span className="text-xs text-[#8b5cf6] font-medium">Starter</span>
+                                        <div className="w-1 h-1 bg-green-500 rounded-full ml-2" />
+                                    </div>
                                 </div>
-                            </div>
+                            </Authenticated>
+                            <Unauthenticated>
+                                <div className="text-white">
+                                    Click to Sign In
+                                </div>
+                            </Unauthenticated>
                             <Button
                                 variant="ghost"
                                 size="icon"
