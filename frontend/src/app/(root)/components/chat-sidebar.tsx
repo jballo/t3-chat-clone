@@ -359,10 +359,22 @@ export function ChatSidebar({ collapsed, onToggleCollapse, activeChat, onChatSel
                     </div>
                 ) : (
                     <div className="p-2 border-t border-[#2a2a2a] flex justify-center">
-                        <Avatar className="h-12 w-12 cursor-pointer transition-colors duration-200" onClick={navigateToSettings}>
-                            <AvatarImage src="/images/avatar.png" />
-                            <AvatarFallback className="bg-[#3a1a2f] text-white font-bold">JB</AvatarFallback>
-                        </Avatar>
+                        <Authenticated>
+                            <Avatar className="h-12 w-12 cursor-pointer transition-colors duration-200" onClick={navigateToSettings}>
+                                <AvatarImage src="/images/avatar.png" />
+                                <AvatarFallback className="bg-[#3a1a2f] text-white font-bold">JB</AvatarFallback>
+                            </Avatar>
+                        </Authenticated>
+                        <Unauthenticated>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-12 w-12 text-gray-400 hover:text-white hover:bg-[#2a2a2a] transition-colors duration-200"
+                                onClick={navigateToSettings}
+                            >
+                                <Settings className="h-4 w-4" />
+                            </Button>
+                        </Unauthenticated>
                     </div>
                 )}
             </>
