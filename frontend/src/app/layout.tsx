@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "T∞.chat",
   description: "T3 Chat Clone, but INFINITE",
-  icons: "./images/icons8-infinity-50.png"
+  icons: "https://414duiw16e.ufs.sh/f/7d2Z7EA8l4q6yvzq3uHf5CtNjYgk640sHVGoqbvWn7QREIUS"
 };
 
 export default function RootLayout({
