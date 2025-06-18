@@ -65,4 +65,5 @@ export default defineSchema({
         status: v.string(),
     })
     .index("by_recipient_email", ["recipient_email"])
+    .index("by_chat_id", ["chat_id"])
 });
