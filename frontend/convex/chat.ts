@@ -402,6 +402,18 @@ export const deleteChat = mutation({
       await ctx.db.delete(msg._id);
     }
 
+    // collect invitations for appropriate chat
+    const invitations = await ctx.db
+      .query("invites")
+      .withIndex("by_chat_id", (q) => q.eq("chat_id", conversation_id))
+      .collect();
+
+    // delte invitations for chat
+    for (const invite of invitations) {
+      await ctx.db.delete(invite._id);
+    }
+    
+
     // delete chat
     await ctx.db.delete(conversation_id);
   }
