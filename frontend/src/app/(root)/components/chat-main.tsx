@@ -13,17 +13,27 @@ import {
   Send,
   Ellipsis,
   LoaderCircle,
+  Share,
+  Mail,
+  XIcon,
+  Bell,
+  Check,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/atoms/button";
 import { Input } from "@/atoms/input";
 import { Id } from "../../../../convex/_generated/dataModel";
-import { useAction, useConvexAuth, useMutation, useQuery } from "convex/react";
+import { Authenticated, Unauthenticated, useAction, useConvexAuth, useMutation, useQuery } from "convex/react";
 import { api } from "../../../../convex/_generated/api";
 import { ModelSelector } from "./model-selector";
 import { MessageRenderer } from "./MessageRenderer";
 import { UploadButton } from "@/utils/uploadthing";
 import Image from "next/image";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/atoms/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/atoms/tabs";
+import * as DialogPrimitive from "@radix-ui/react-dialog"
+import { Popover, PopoverContent, PopoverTrigger } from "@/atoms/popover";
+import { Card, CardContent, CardFooter, CardHeader } from "@/atoms/card";
 
 interface CoreTextPart {
   type: "text";
@@ -87,7 +97,7 @@ interface ChatMainProps {
     icon: string;
     capabilities: string[];
   }) => void;
-  activeChat: Id<"chats"> | null;
+  activeChat: { id: Id<"chats">, title: string } | null;
   sidebarCollapsed: boolean;
   onToggleSidebar: () => void;
 }
@@ -179,6 +189,52 @@ export function ChatMessages({ messages }: ChatMessagesProps) {
   );
 }
 
+export function InvitationList() {
+  const pendingInvitations = useQuery(api.chat.getPendingInvitations);
+  const acceptInvite = useMutation(api.chat.acceptInvitation);
+  const denyInvite = useMutation(api.chat.denyInvitation);
+
+  return (
+    <>
+      {(pendingInvitations && pendingInvitations.length > 0) ? (pendingInvitations.map(invitation => (
+        <div key={invitation._id} className="flex flex-col gap-2 p-3 border border-[#2a2a2a] rounded-xl mb-2">
+          <p className="text-base font-bold text-white">
+            {invitation.chat_name}
+          </p>
+          <p className="text-sm text-gray-400">
+            {invitation.author_email} shared a chat.
+          </p>
+          <div className="flex flex-row items-center justify-between">
+            <p className="text-sm text-gray-500">
+              {new Date(invitation._creationTime).toLocaleDateString()}
+            </p>
+            <div className="flex flex-row gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-gray-400 hover:text-white hover:bg-[#2a2a2a] rounded-xl"
+                onClick={() => denyInvite({ invitation_id: invitation._id })}
+              >
+                <XIcon className="h-4 w-4" />
+              </Button>
+              <Button
+                className="bg-[#3a1a2f] hover:bg-[#4a2a3f] text-white rounded-xl px-3 py-1 text-sm"
+                onClick={() => acceptInvite({ invitation_id: invitation._id })}
+              >
+                <Check className="h-4 w-4 mr-1" /> Accept
+              </Button>
+            </div>
+          </div>
+        </div>
+      ))) : (
+        <div className="flex flex-col gap-2 p-3 border border-[#2a2a2a] rounded-xl mb-2">
+          No Invitations
+        </div>
+      )}
+    </>
+  );
+}
+
 interface File {
   type: string,
   data: string,
@@ -194,18 +250,21 @@ export function ChatMain({
   const { isLoading, isAuthenticated } = useConvexAuth();
   const [message, setMessage] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [email, setEmail] = useState<string>("");
 
 
   const messages =
     useQuery(
       api.chat.getMessages,
-      activeChat ? { conversationId: activeChat } : "skip"
+      activeChat ? { conversationId: activeChat.id } : "skip"
     ) || [];
 
   console.log("messages: ", messages);
   const sendMessage = useMutation(api.chat.sendMessage);
   const createChat = useAction(api.chat.createChat);
   const uploadImages = useMutation(api.chat.uploadImages);
+  const createInvitation = useMutation(api.chat.createInvitation);
+
 
   const handleSendMessage = () => {
     if (isLoading || !isAuthenticated) return;
@@ -309,7 +368,7 @@ export function ChatMain({
         const newHistory: CoreMessage[] = [...oldHistory, msg];
 
         sendMessage({
-          conversationId: activeChat,
+          conversationId: activeChat.id,
           history: newHistory,
           model: selectedModel.id,
         });
@@ -339,7 +398,7 @@ export function ChatMain({
         // });
 
         sendMessage({
-          conversationId: activeChat,
+          conversationId: activeChat.id,
           history: newHistory,
           model: selectedModel.id,
         });
@@ -362,14 +421,126 @@ export function ChatMain({
     router.push("/settings");
   };
 
+
+  const shareChat = () => {
+    if (!email || email.length < 1) return;
+
+    if (!activeChat) return;
+
+    createInvitation({
+      recipient_email: email,
+      chat_id: activeChat.id,
+      chat_name: activeChat.title
+    });
+  }
+
   return (
     <div className="flex flex-col h-full bg-[#1a1a1a]">
       {/* Chat header */}
       <div className="flex items-center justify-between p-4 border-b border-[#2a2a2a] bg-[#1a1a1a]">
         <div className="flex items-center gap-3">
-          <h2 className="text-white font-semibold text-lg">Chat</h2>
+          <h2 className="text-white font-semibold text-lg">{activeChat ? activeChat.title : "Chat"}</h2>
         </div>
         <div className="flex items-center gap-2">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 text-gray-400 hover:text-white hover:bg-[#2a2a2a] rounded-xl transition-colors duration-200"
+              >
+                <Share className="h-5 w-5" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-2xl p-6 shadow-lg gap-4">
+              <DialogPrimitive.Close className="absolute top-4 right-4 rounded-sm text-white hover:opacity-75">
+                <XIcon className="h-4 w-4" />
+                <span className="sr-only">Close</span>
+              </DialogPrimitive.Close>
+              <DialogHeader>
+                <DialogTitle className="text-white font-semibold">
+                  Share {activeChat?.title}
+                </DialogTitle>
+                <DialogDescription className="text-gray-400">
+                  Share your chat with other users on the platform. Enter their email.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex flex-col gap-8">
+                <div className="flex flex-row items-center gap-3">
+                  <label className="text-gray-400">
+                    <Mail className="h-8" />
+                  </label>
+                  <Input
+                    type="email"
+                    className="bg-[#1e1e1e] text-white border border-[#3a3a3a] rounded-md h-8"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+                <div className="flex flex-row items-end justify-between">
+                  <Tabs defaultValue="edit">
+                    <TabsList className="bg-[#2a2a2a] border border-[#3a3a3a] rounded-xl p-1">
+                      <TabsTrigger
+                        value="edit"
+                        className="px-4 py-2 rounded-md text-gray-300 hover:text-white transition-colors duration-200 data-[state=active]:bg-[#2A1A2F] data-[state=active]:text-white"
+                      >
+                        Edit
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="view"
+                        className="px-4 py-2 rounded-md text-gray-300 hover:text-white transition-colors duration-200 data-[state=active]:bg-[#2A1A2F] data-[state=active]:text-white"
+                      >
+                        View
+                      </TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="edit" className="mt-2 text-gray-300">
+                      Let another user add additions to this chat.
+                    </TabsContent>
+                    <TabsContent value="view" className="mt-2 text-gray-300">
+                      Coming soon...
+                    </TabsContent>
+                  </Tabs>
+                  <Button
+                    className="bg-[#3a1a2f] hover:bg-[#4a2a3f] text-white rounded-xl transition-colors duration-200"
+                    onClick={shareChat}
+                  >
+                    Submit
+                  </Button>
+
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 text-gray-400 hover:text-white hover:bg-[#2a2a2a] rounded-xl transition-colors duration-200"
+              >
+                <Bell className="h-5 w-5" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="bg-[#1e1e1e] border-none p-0 w-80">
+              <Card className="bg-[#1e1e1e] border-[1px] border-[#2a2a2a] text-white">
+                <CardHeader className="text-lg font-semibold">
+                  Chat Invitations
+                </CardHeader>
+                <CardContent>
+                  <Authenticated>
+                    <InvitationList />
+                  </Authenticated>
+                  <Unauthenticated>
+                    <p>Sign In to view invitations</p>
+                  </Unauthenticated>
+
+                </CardContent>
+                <CardFooter className="hidden">
+                  View All
+                </CardFooter>
+              </Card>
+            </PopoverContent>
+          </Popover>
           <Button
             variant="ghost"
             size="icon"

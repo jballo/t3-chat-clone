@@ -6,6 +6,7 @@ import Link from "next/link"
 import { Button } from "@/atoms/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/atoms/avatar"
 import { Progress } from "@/atoms/progress"
+import { SignOutButton } from "@clerk/nextjs"
 
 export default function SettingsPage() {
     const [activeTab, setActiveTab] = useState("account")
@@ -37,9 +38,11 @@ export default function SettingsPage() {
                             />
                         </svg>
                     </Button>
-                    <Button variant="ghost" className="text-gray-300 hover:text-white">
-                        Sign out
-                    </Button>
+                    <SignOutButton>
+                        <Button variant="ghost" className="text-gray-300 hover:text-white">
+                            Sign out
+                        </Button>
+                    </SignOutButton>
                 </div>
             </header>
 

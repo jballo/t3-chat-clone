@@ -343,15 +343,21 @@ export const getChats = query({
 
     const user_id = identity.subject;
 
-    const chats = await ctx.db
+    // const chats = await ctx.db
+    //   .query("chats")
+    //   .filter((q) => q.eq(q.field("user_id"), user_id))
+    //   .order("desc")
+    //   .collect();
+
+    const optimalChats = await ctx.db
       .query("chats")
-      .filter((q) => q.eq(q.field("user_id"), user_id))
+      .withIndex("by_user", (q) => q.eq("user_id", user_id))
       .order("desc")
       .collect();
 
-    console.log("Chats: ", chats);
+    console.log("Chats: ", optimalChats);
 
-    return chats;
+    return optimalChats;
   },
 });
 
@@ -361,12 +367,17 @@ export const getMessages = query({
     // return all the messages for the appropirate conversation
     const conversation_id = args.conversationId;
 
-    const messages = await ctx.db
-      .query("messages")
-      .filter((q) => q.eq(q.field("chat_id"), conversation_id))
-      .collect();
+    // const messages = await ctx.db
+    //   .query("messages")
+    //   .filter((q) => q.eq(q.field("chat_id"), conversation_id))
+    //   .collect();
 
-    return messages;
+      const optimalMessages = await ctx.db
+        .query("messages")
+        .withIndex("by_chatId", (q) => q.eq("chat_id", conversation_id))
+        .collect();
+
+    return optimalMessages;
   },
 });
 
@@ -431,5 +442,150 @@ export const uploadImages = mutation({
 
     return uploadedFiles;
 
+  }
+})
+
+export const createInvitation = mutation({
+  args: {
+    recipient_email: v.string(),
+    chat_id: v.id("chats"),
+    chat_name: v.string(),
+  },
+  handler: async(ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (identity === null) {
+      throw new Error("Not authenticated");
+    }
+    
+    const email = identity.email;
+    if (!email) {throw new Error("Failed to get user email");}
+
+    const { recipient_email, chat_id, chat_name } = args;
+
+    await ctx.db.insert("invites", {
+      recipient_email: recipient_email,
+      author_email: email,
+      chat_id: chat_id,
+      chat_name: chat_name,
+      status: "pending"
+    });
+  }
+});
+
+
+export const getPendingInvitations = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (identity === null) {
+      throw new Error("Not authenticated");
+    }
+    
+    const email = identity.email;
+    if (!email) {throw new Error("Failed to get user email");}
+
+    // const invites = await ctx.db
+    //   .query("invites")
+    //   .filter((q) => q.eq(q.field("recipient_email"), email))
+      // .filter((q) => q.eq(q.field("status"), "pending"))
+    //   .collect();
+
+    const optimalInvites = await ctx.db
+      .query("invites")
+      .withIndex("by_recipient_email", (q) => q.eq("recipient_email", email))
+      .filter((q) => q.eq(q.field("status"), "pending"))
+      .collect();
+
+    return optimalInvites;
+  }
+})
+
+export const getAcceptedChats = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (identity === null) {
+      throw new Error("Not authenticated");
+    }
+    
+    const email = identity.email;
+    if (!email) {throw new Error("Failed to get user email");}
+
+    // const invites = await ctx.db
+    //   .query("invites")
+    //   .filter((q) => q.eq(q.field("recipient_email"), email))
+    //   .filter((q) => q.eq(q.field("status"), "accepted"))
+    //   .collect();
+
+    const optimalInvites = await ctx.db
+      .query("invites")
+      .withIndex("by_recipient_email", (q) => q.eq("recipient_email", email))
+      .filter((q) => q.eq(q.field("status"), "accepted"))
+      .collect();
+
+    const chatIds = optimalInvites.map((invite) => invite.chat_id);
+    const chats = await ctx.db
+      .query("chats")
+      .filter((q) => q.or(...chatIds.map(id => q.eq(q.field("_id"), id))))
+      .collect();
+
+    return chats;
+  }
+})
+
+
+export const acceptInvitation = mutation({
+  args: {
+    invitation_id: v.id("invites")
+  },
+  handler: async (ctx, args) => {
+    const { invitation_id } = args;
+    
+    await ctx.db.patch(invitation_id, { status: "accepted" });
+  }
+});
+
+export const denyInvitation = mutation({
+  args: {
+    invitation_id: v.id("invites")
+  },
+  handler: async (ctx, args) => {
+    const { invitation_id } = args;
+    
+    await ctx.db.delete(invitation_id);
+  }
+});
+
+export const leaveSharedChat = mutation({
+  args: {
+    chat_id: v.id("chats")
+  },
+  handler: async (ctx, args) => {
+
+    const identity = await ctx.auth.getUserIdentity();
+    if (identity === null) {
+      throw new Error("Not authenticated");
+    }
+    
+    const email = identity.email;
+    if (!email) {throw new Error("Failed to get user email");}
+    
+    const { chat_id } = args;
+    
+    // const invite = await ctx.db
+    //   .query("invites")
+      // .filter((q) => q.eq(q.field("chat_id"), chat_id))
+    //   .first();
+
+    const optimalInvite = await ctx.db
+      .query("invites")
+      .withIndex("by_recipient_email", (q) => q.eq("recipient_email", email))
+      .filter((q) => q.eq(q.field("chat_id"), chat_id))
+      .first();
+
+
+    if (!optimalInvite) throw new Error("Invitation not found");
+
+    await ctx.db.delete(optimalInvite._id); 
   }
 })

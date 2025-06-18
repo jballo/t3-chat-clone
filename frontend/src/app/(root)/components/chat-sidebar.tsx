@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { Search, Settings, Plus, Trash } from "lucide-react"
+import { Search, Settings, Plus, Trash, LogOut, Users, MessageSquare } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/atoms/button"
 import { Input } from "@/atoms/input"
@@ -9,29 +9,65 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/atoms/avatar"
 import { Authenticated, Unauthenticated, useMutation, useQuery } from "convex/react"
 import { api } from "../../../../convex/_generated/api"
 import { Id } from "../../../../convex/_generated/dataModel"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/atoms/tabs"
+import clsx from "clsx"
+import { Separator } from "@/atoms/separator"
 
 interface ChatSidebarProps {
     collapsed: boolean
     onToggleCollapse: () => void
-    activeChat: Id<"chats"> | null
-    onChatSelect: (chatId: Id<"chats"> | null) => void
+    activeChat: { id: Id<"chats">, title: string } | null
+    onChatSelect: (chatId: { id: Id<"chats">, title: string } | null) => void
+    activeTab: "myChats" | "shared"
+    setActiveTab: (tabVal: "myChats" | "shared") => void
 }
 
-export function ChatList({ collapsed, activeChat, onChatSelect }: { collapsed: boolean; activeChat: Id<"chats"> | null; onChatSelect: (chatId: Id<"chats"> | null) => void }) {
+interface ChatListProps {
+    collapsed: boolean
+    activeChat: { id: Id<"chats">, title: string } | null
+    onChatSelect: (chatId: { id: Id<"chats">, title: string } | null) => void
+    activeTab: "myChats" | "shared"
+    setActiveTab: (tabVal: "myChats" | "shared") => void
+}
+
+export function ChatList({ collapsed, activeChat, onChatSelect, activeTab, setActiveTab }: ChatListProps) {
     const [searchQuery, setSearchQuery] = useState("");
 
     const conversations = useQuery(api.chat.getChats) || [];
+    const sharedChats = useQuery(api.chat.getAcceptedChats) || [];
     const deleteChat = useMutation(api.chat.deleteChat);
+    const leaveSharedChat = useMutation(api.chat.leaveSharedChat);
 
 
     useEffect(() => {
-        console.log("New convo")
+        if (activeTab !== "myChats") return;
+
         if (conversations.length > 0) {
-            onChatSelect(conversations[0]._id);
+
+            onChatSelect({
+                id: conversations[0]._id,
+                title: conversations[0].title
+            });
         } else {
             onChatSelect(null);
         }
     }, [conversations]);
+
+
+    useEffect(() => {
+        console.log("Accepted chats: ", sharedChats);
+        if (activeTab !== "shared") return;
+
+        if (sharedChats.length > 0) {
+            onChatSelect({
+                id: sharedChats[0]._id,
+                title: sharedChats[0].title
+            });
+        } else {
+            onChatSelect(null);
+        }
+
+    }, [sharedChats]);
 
 
     // Filter conversations based on search query
@@ -40,6 +76,12 @@ export function ChatList({ collapsed, activeChat, onChatSelect }: { collapsed: b
 
         return conversations?.filter((conversation) => conversation.title.toLowerCase().includes(searchQuery.toLowerCase()));
     }, [searchQuery, conversations])
+
+    const filteredSharedChats = useMemo(() => {
+        if (!searchQuery.trim()) return sharedChats;
+
+        return sharedChats?.filter((chat) => chat.title.toLocaleLowerCase().includes(searchQuery.toLocaleLowerCase()));
+    }, [searchQuery, sharedChats]);
 
     // // Group filtered conversations by date
     // const groupedConversations = useMemo(() => {
@@ -56,13 +98,21 @@ export function ChatList({ collapsed, activeChat, onChatSelect }: { collapsed: b
     // }, [filteredConversations])
 
 
-    const handleDeleteChat = (id: Id<"chats">) => {
-        deleteChat({ conversationId: id });
+    const handleDeleteChat = async (id: Id<"chats">) => {
+        await deleteChat({ conversationId: id });
+    }
+
+    const handleLeaveChat = async (id: Id<"chats">) => {
+        console.log("leaving chat...");
+        await leaveSharedChat({
+            chat_id: id
+        });
+        // onChatSelect(null);
     }
 
     return (
-        <>
-            {!collapsed && (
+        <div className="flex-1 overflow-y-auto">
+            {!collapsed ? (
                 <>
                     <div className="px-4 pt-4 pb-2">
                         <Button className="w-full bg-[#3a1a2f] hover:bg-[#4a2a3f] text-white rounded-xl h-11 font-medium transition-colors duration-200"
@@ -72,76 +122,160 @@ export function ChatList({ collapsed, activeChat, onChatSelect }: { collapsed: b
                             New Chat
                         </Button>
                     </div>
-
-                    <div className="px-4 pb-4">
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                            <Input
-                                placeholder="Search your threads..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-10 bg-[#1e1e1e] border-[#2a2a2a] text-gray-300 h-10 rounded-xl focus:border-[#3a1a2f] focus:ring-1 focus:ring-[#3a1a2f] transition-colors duration-200"
-                            />
-                        </div>
+                    <div className="px-4 pt-4 pb-2">
+                        <Tabs defaultValue="myChats" value={activeTab}>
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                <Input
+                                    placeholder="Search your threads..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="pl-10 bg-[#1e1e1e] border-[#2a2a2a] text-gray-300 h-10 rounded-xl focus:border-[#3a1a2f] focus:ring-1 focus:ring-[#3a1a2f] transition-colors duration-200"
+                                />
+                            </div>
+                            <TabsList className="bg-[#1e1e1e] border-[#2a2a2a] mt-2 w-full">
+                                <TabsTrigger
+                                    value="myChats"
+                                    className="text-gray-300 data-[state=active]:bg-[#3a1a2f] data-[state=active]:text-white"
+                                    onClick={() => setActiveTab("myChats")}
+                                >
+                                    My Chats
+                                </TabsTrigger>
+                                <TabsTrigger
+                                    value="shared"
+                                    className="text-gray-300 data-[state=active]:bg-[#3a1a2f] data-[state=active]:text-white"
+                                    onClick={() => setActiveTab("shared")}
+                                >
+                                    Shared
+                                </TabsTrigger>
+                            </TabsList>
+                            <TabsContent value="myChats">
+                                {filteredConversations.map(conversation => (
+                                    <div
+                                        key={conversation._id}
+                                        onClick={() => onChatSelect({ id: conversation._id, title: conversation.title })}
+                                        className={`mb-1 px-3 py-3 rounded-xl cursor-pointer text-gray-300 text-sm transition-colors duration-150 hover:bg-[#2a2a2a] relative ${activeChat?.id === conversation._id ? "bg-[#2a1a2f]" : ""
+                                            }`}
+                                    >
+                                        {activeChat?.id === conversation._id && (
+                                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#8b5cf6] rounded-r-full" />
+                                        )}
+                                        <div className="flex flex-row justify-between">
+                                            <div className="flex flex-col">
+                                                <div className="font-medium text-white mb-1 line-clamp-1">{conversation.title}</div>
+                                                <div className="text-xs text-gray-500">
+                                                    {new Date(conversation._creationTime).toLocaleString()}
+                                                </div>
+                                            </div>
+                                            <Button className={`bg-transparent hover:bg-[#3a1a2f] ${activeChat?.id === conversation._id ? "" : "hidden"}`} onClick={() => handleDeleteChat(conversation._id)}>
+                                                <Trash />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </TabsContent>
+                            <TabsContent value="shared">
+                                {filteredSharedChats.map(conversation => (
+                                    <div
+                                        key={conversation._id}
+                                        onClick={() => onChatSelect({ id: conversation._id, title: conversation.title })}
+                                        className={`mb-1 px-3 py-3 rounded-xl cursor-pointer text-gray-300 text-sm transition-colors duration-150 hover:bg-[#2a2a2a] relative ${activeChat?.id === conversation._id ? "bg-[#2a1a2f]" : ""
+                                            }`}
+                                    >
+                                        {activeChat?.id === conversation._id && (
+                                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#8b5cf6] rounded-r-full" />
+                                        )}
+                                        <div className="flex flex-row justify-between">
+                                            <div className="flex flex-col">
+                                                <div className="font-medium text-white mb-1 line-clamp-1">{conversation.title}</div>
+                                                <div className="text-xs text-gray-500">
+                                                    {new Date(conversation._creationTime).toLocaleString()}
+                                                </div>
+                                            </div>
+                                            <Button className={`bg-transparent hover:bg-[#3a1a2f] ${activeChat?.id === conversation._id ? "" : "hidden"}`} onClick={() => handleLeaveChat(conversation._id)}>
+                                                <LogOut />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </TabsContent>
+                        </Tabs>
                     </div>
                 </>
-            )}
+            ) : (
+                <div className="flex flex-col items-center gap-3 p-2">
+                    <button
+                        onClick={() => onChatSelect(null)}
+                        className={clsx(`w-12 h-12 rounded-xl flex items-center justify-center text-xs font-bold transition-colors duration-150 text-white bg-[#3a1a2f] hover:bg-[#4a2a3f]`)}
+                    >
+                        <Plus className="w-4 h-4" />
+                    </button>
+                    <Separator className="border-[0.5px] border-[#3a3a3a]" />
 
-            <div className="flex-1 overflow-y-auto">
-                {!collapsed ? (
-                    filteredConversations.map((conversation) => (
-                        <div
-                            key={conversation._id}
-                            onClick={() => onChatSelect(conversation._id)}
-                            className={`mx-2 mb-1 px-3 py-3 rounded-xl cursor-pointer text-gray-300 text-sm transition-colors duration-150 hover:bg-[#2a2a2a] relative ${activeChat === conversation._id ? "bg-[#2a1a2f]" : ""
-                                }`}
-                        >
-                            {activeChat === conversation._id && (
-                                <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#8b5cf6] rounded-r-full" />
-                            )}
-                            <div className="flex flex-row justify-between">
-                                <div className="flex flex-col">
-                                    <div className="font-medium text-white mb-1 line-clamp-1">{conversation.title}</div>
-                                    <div className="text-xs text-gray-500">
-                                        {new Date(conversation._creationTime).toLocaleString()}
-                                    </div>
-                                </div>
-                                <Button className={`bg-transparent hover:bg-[#3a1a2f] ${activeChat === conversation._id ? "" : "hidden"}`} onClick={() => handleDeleteChat(conversation._id)}>
-                                    <Trash />
-                                </Button>
-                            </div>
-                        </div>
-                    ))
-                ) : (
-                    <div className="flex flex-col items-center gap-2 p-2">
-                        <button
-                            onClick={() => onChatSelect(null)}
-                            className={`w-12 h-12 rounded-xl flex items-center justify-center text-xs font-bold transition-colors duration-150 text-white bg-[#3a1a2f] hover:bg-[#4a2a3f]`}
-                        >
-                            <Plus className="w-4 h-4" />
-                        </button>
-                        <br />
-                        {filteredConversations.slice(0, 8).map((conversation) => (
-                            <button
-                                key={conversation._id}
-                                onClick={() => onChatSelect(conversation._id)}
-                                className={`w-12 h-12 rounded-xl flex items-center justify-center text-xs font-bold transition-colors duration-150 ${activeChat === conversation._id
-                                    ? "bg-[#2a1a2f] text-white"
-                                    : "bg-[#1e1e1e] text-gray-400 hover:bg-[#2a2a2a] hover:text-white"
-                                    }`}
-                                title={conversation.title}
-                            >
-                                {conversation.title.slice(0, 2).toUpperCase()}
-                            </button>
-                        ))}
-                    </div>
-                )}
-            </div >
-        </>
+                    <Button
+                        onClick={() => setActiveTab("myChats")}
+                        className={clsx(
+                            "w-12 h-12 rounded-xl flex items-center justify-center text-xs font-bold transition-colors duration-150",
+                            activeTab === "myChats"
+                                ? "bg-[#3a1a2f] hover:bg-[#4a2a3f] text-white"
+                                : "bg-[#1e1e1e] text-gray-400 hover:bg-[#2a2a2a] hover:text-white"
+                        )}
+                    >
+                        <MessageSquare className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        onClick={() => setActiveTab("shared")}
+                        className={clsx(
+                            "w-12 h-12 rounded-xl flex items-center justify-center text-xs font-bold transition-colors duration-150",
+                            activeTab === "shared"
+                                ? "bg-[#3a1a2f] hover:bg-[#4a2a3f] text-white"
+                                : "bg-[#1e1e1e] text-gray-400 hover:bg-[#2a2a2a] hover:text-white"
+                        )}
+                    >
+                        <Users className="h-4 w-4" />
+                    </Button>
+                    <Separator className="border-[0.5px] border-[#3a3a3a]" />
+
+                    {(activeTab === "myChats") ? (
+                        <>
+                            {filteredConversations.slice(0, 8).map((conversation) => (
+                                <button
+                                    key={conversation._id}
+                                    onClick={() => onChatSelect({ id: conversation._id, title: conversation.title })}
+                                    className={`w-12 h-12 rounded-xl flex items-center justify-center text-xs font-bold transition-colors duration-150 ${activeChat?.id === conversation._id
+                                        ? "bg-[#2a1a2f] text-white"
+                                        : "bg-[#1e1e1e] text-gray-400 hover:bg-[#2a2a2a] hover:text-white"
+                                        }`}
+                                    title={conversation.title}
+                                >
+                                    {conversation.title.slice(0, 2).toUpperCase()}
+                                </button>
+                            ))}
+                        </>
+                    ) : (
+                        <>
+                            {filteredSharedChats.slice(0, 8).map((conversation) => (
+                                <button
+                                    key={conversation._id}
+                                    onClick={() => onChatSelect({ id: conversation._id, title: conversation.title })}
+                                    className={`w-12 h-12 rounded-xl flex items-center justify-center text-xs font-bold transition-colors duration-150 ${activeChat?.id === conversation._id
+                                        ? "bg-[#2a1a2f] text-white"
+                                        : "bg-[#1e1e1e] text-gray-400 hover:bg-[#2a2a2a] hover:text-white"
+                                        }`}
+                                    title={conversation.title}
+                                >
+                                    {conversation.title.slice(0, 2).toUpperCase()}
+                                </button>
+                            ))}
+                        </>
+                    )}
+                </div>
+            )}
+        </div>
     );
 }
 
-export function ChatSidebar({ collapsed, onToggleCollapse, activeChat, onChatSelect }: ChatSidebarProps) {
+export function ChatSidebar({ collapsed, onToggleCollapse, activeChat, onChatSelect, activeTab, setActiveTab }: ChatSidebarProps) {
     const router = useRouter();
 
     const navigateToSettings = () => {
@@ -178,7 +312,7 @@ export function ChatSidebar({ collapsed, onToggleCollapse, activeChat, onChatSel
             <>
                 <>
                     <Authenticated>
-                        <ChatList collapsed={collapsed} activeChat={activeChat} onChatSelect={onChatSelect} />
+                        <ChatList collapsed={collapsed} activeChat={activeChat} onChatSelect={onChatSelect} activeTab={activeTab} setActiveTab={setActiveTab} />
                     </Authenticated>
                     <Unauthenticated>
                         Sign In To View/Create Chats
