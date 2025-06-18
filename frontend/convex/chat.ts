@@ -532,3 +532,21 @@ export const denyInvitation = mutation({
     await ctx.db.delete(invitation_id);
   }
 });
+
+export const leaveSharedChat = mutation({
+  args: {
+    chat_id: v.id("chats")
+  },
+  handler: async (ctx, args) => {
+    const { chat_id } = args;
+    
+    const invite = await ctx.db
+      .query("invites")
+      .filter((q) => q.eq(q.field("chat_id"), chat_id))
+      .first();
+
+    if (!invite) throw new Error("Invitation not found");
+
+    await ctx.db.delete(invite._id); 
+  }
+})

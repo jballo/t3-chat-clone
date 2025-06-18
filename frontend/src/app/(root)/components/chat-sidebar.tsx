@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { Search, Settings, Plus, Trash } from "lucide-react"
+import { Search, Settings, Plus, Trash, LogOut } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/atoms/button"
 import { Input } from "@/atoms/input"
@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/atoms/avatar"
 import { Authenticated, Unauthenticated, useMutation, useQuery } from "convex/react"
 import { api } from "../../../../convex/_generated/api"
 import { Id } from "../../../../convex/_generated/dataModel"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/atoms/tabs"
 
 interface ChatSidebarProps {
     collapsed: boolean
@@ -29,6 +30,7 @@ export function ChatList({ collapsed, activeChat, onChatSelect }: ChatListProps)
     const conversations = useQuery(api.chat.getChats) || [];
     const sharedChats = useQuery(api.chat.getAcceptedChats) || [];
     const deleteChat = useMutation(api.chat.deleteChat);
+    const leaveSharedChat = useMutation(api.chat.leaveSharedChat);
 
 
     useEffect(() => {
@@ -56,6 +58,12 @@ export function ChatList({ collapsed, activeChat, onChatSelect }: ChatListProps)
         return conversations?.filter((conversation) => conversation.title.toLowerCase().includes(searchQuery.toLowerCase()));
     }, [searchQuery, conversations])
 
+    const filteredSharedChats = useMemo(() => {
+        if (!searchQuery.trim()) return sharedChats;
+
+        return sharedChats?.filter((chat) => chat.title.toLocaleLowerCase().includes(searchQuery.toLocaleLowerCase()));
+    }, [searchQuery, sharedChats]);
+
     // // Group filtered conversations by date
     // const groupedConversations = useMemo(() => {
     //     return filteredConversations?.reduce(
@@ -75,6 +83,14 @@ export function ChatList({ collapsed, activeChat, onChatSelect }: ChatListProps)
         deleteChat({ conversationId: id });
     }
 
+    const handleLeaveChat = (id: Id<"chats">) => {
+        console.log("leaving chat...");
+        leaveSharedChat({
+            chat_id: id
+        });
+        onChatSelect(null);
+    }
+
     return (
         <>
             {!collapsed && (
@@ -87,46 +103,89 @@ export function ChatList({ collapsed, activeChat, onChatSelect }: ChatListProps)
                             New Chat
                         </Button>
                     </div>
-
-                    <div className="px-4 pb-4">
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                            <Input
-                                placeholder="Search your threads..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-10 bg-[#1e1e1e] border-[#2a2a2a] text-gray-300 h-10 rounded-xl focus:border-[#3a1a2f] focus:ring-1 focus:ring-[#3a1a2f] transition-colors duration-200"
-                            />
-                        </div>
+                    <div className="px-4 pt-4 pb-2">
+                        <Tabs defaultValue="myChats">
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                <Input
+                                    placeholder="Search your threads..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="pl-10 bg-[#1e1e1e] border-[#2a2a2a] text-gray-300 h-10 rounded-xl focus:border-[#3a1a2f] focus:ring-1 focus:ring-[#3a1a2f] transition-colors duration-200"
+                                />
+                            </div>
+                            <TabsList className="bg-[#1e1e1e] border-[#2a2a2a] mt-2 w-full">
+                                <TabsTrigger
+                                    value="myChats"
+                                    className="text-gray-300 data-[state=active]:bg-[#3a1a2f] data-[state=active]:text-white"
+                                >
+                                    My Chats
+                                </TabsTrigger>
+                                <TabsTrigger
+                                    value="shared"
+                                    className="text-gray-300 data-[state=active]:bg-[#3a1a2f] data-[state=active]:text-white"
+                                >
+                                    Shared
+                                </TabsTrigger>
+                            </TabsList>
+                            <TabsContent value="myChats">
+                                {filteredConversations.map(conversation => (
+                                    <div
+                                        key={conversation._id}
+                                        onClick={() => onChatSelect({ id: conversation._id, title: conversation.title })}
+                                        className={`mb-1 px-3 py-3 rounded-xl cursor-pointer text-gray-300 text-sm transition-colors duration-150 hover:bg-[#2a2a2a] relative ${activeChat?.id === conversation._id ? "bg-[#2a1a2f]" : ""
+                                            }`}
+                                    >
+                                        {activeChat?.id === conversation._id && (
+                                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#8b5cf6] rounded-r-full" />
+                                        )}
+                                        <div className="flex flex-row justify-between">
+                                            <div className="flex flex-col">
+                                                <div className="font-medium text-white mb-1 line-clamp-1">{conversation.title}</div>
+                                                <div className="text-xs text-gray-500">
+                                                    {new Date(conversation._creationTime).toLocaleString()}
+                                                </div>
+                                            </div>
+                                            <Button className={`bg-transparent hover:bg-[#3a1a2f] ${activeChat?.id === conversation._id ? "" : "hidden"}`} onClick={() => handleDeleteChat(conversation._id)}>
+                                                <Trash />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </TabsContent>
+                            <TabsContent value="shared">
+                                {filteredSharedChats.map(conversation => (
+                                    <div
+                                        key={conversation._id}
+                                        onClick={() => onChatSelect({ id: conversation._id, title: conversation.title })}
+                                        className={`mb-1 px-3 py-3 rounded-xl cursor-pointer text-gray-300 text-sm transition-colors duration-150 hover:bg-[#2a2a2a] relative ${activeChat?.id === conversation._id ? "bg-[#2a1a2f]" : ""
+                                            }`}
+                                    >
+                                        {activeChat?.id === conversation._id && (
+                                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#8b5cf6] rounded-r-full" />
+                                        )}
+                                        <div className="flex flex-row justify-between">
+                                            <div className="flex flex-col">
+                                                <div className="font-medium text-white mb-1 line-clamp-1">{conversation.title}</div>
+                                                <div className="text-xs text-gray-500">
+                                                    {new Date(conversation._creationTime).toLocaleString()}
+                                                </div>
+                                            </div>
+                                            <Button className={`bg-transparent hover:bg-[#3a1a2f] ${activeChat?.id === conversation._id ? "" : "hidden"}`} onClick={() => handleLeaveChat(conversation._id)}>
+                                                <LogOut />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </TabsContent>
+                        </Tabs>
                     </div>
                 </>
             )}
 
             <div className="flex-1 overflow-y-auto">
                 {!collapsed ? (
-                    filteredConversations.map((conversation) => (
-                        <div
-                            key={conversation._id}
-                            onClick={() => onChatSelect({ id: conversation._id, title: conversation.title })}
-                            className={`mx-2 mb-1 px-3 py-3 rounded-xl cursor-pointer text-gray-300 text-sm transition-colors duration-150 hover:bg-[#2a2a2a] relative ${activeChat?.id === conversation._id ? "bg-[#2a1a2f]" : ""
-                                }`}
-                        >
-                            {activeChat?.id === conversation._id && (
-                                <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#8b5cf6] rounded-r-full" />
-                            )}
-                            <div className="flex flex-row justify-between">
-                                <div className="flex flex-col">
-                                    <div className="font-medium text-white mb-1 line-clamp-1">{conversation.title}</div>
-                                    <div className="text-xs text-gray-500">
-                                        {new Date(conversation._creationTime).toLocaleString()}
-                                    </div>
-                                </div>
-                                <Button className={`bg-transparent hover:bg-[#3a1a2f] ${activeChat?.id === conversation._id ? "" : "hidden"}`} onClick={() => handleDeleteChat(conversation._id)}>
-                                    <Trash />
-                                </Button>
-                            </div>
-                        </div>
-                    ))
+                    <p>lol</p>
                 ) : (
                     <div className="flex flex-col items-center gap-2 p-2">
                         <button
