@@ -21,6 +21,7 @@ import {
   LogOut,
   LogIn,
   RefreshCcw,
+  SquarePen,
 } from "lucide-react";
 import { Button } from "@/atoms/button";
 import { Input } from "@/atoms/input";
@@ -38,7 +39,6 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/atoms/popover";
 import { Card, CardContent, CardFooter, CardHeader } from "@/atoms/card";
 import { SignInButton, SignOutButton } from "@clerk/nextjs";
 import { Textarea } from "@/atoms/textarea";
-import { regnerateResponse } from "../../../../convex/chat";
 
 interface CoreTextPart {
   type: "text";
@@ -196,7 +196,7 @@ export function ChatMessages({ messages, activeChat, activeTab }: ChatMessagesPr
       messages.map((msg) => (
         <div key={msg._id} className="mb-8">
           {msg.message.role === "assistant" ? (
-            <div className="flex flex-col justify-start">
+            <div className="flex flex-col justify-start group">
               <div className="max-w-[80%] bg-[#2a2a2a] text-white rounded-2xl rounded-bl-md px-4 py-3">
                 {Array.isArray(msg.message.content) ? (
                   msg.message.content[0].type === "text" ? <MessageRenderer content={msg.message.content[0].text} /> : ''
@@ -204,7 +204,7 @@ export function ChatMessages({ messages, activeChat, activeTab }: ChatMessagesPr
                   <MessageRenderer content={msg.message.content} />
                 )}
               </div>
-              <div className="group flex flex-row gap-2 p-2 items-center">
+              <div className="flex flex-row gap-2 p-2 items-center">
                 <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-row items-center gap-2">
                   {activeTab === "myChats" && (
                     <Button
@@ -224,12 +224,12 @@ export function ChatMessages({ messages, activeChat, activeTab }: ChatMessagesPr
                   >
                     <RefreshCcw className="h-3 w-3" />
                   </Button>
-                  <p className="text-white">{msg.model}</p>
+                  <p className="text-white text-xs">{msg.model}</p>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="flex flex-col items-end">
+            <div className="flex flex-col items-end group">
               <div className="max-w-[80%] bg-[#3a1a2f] text-white rounded-2xl rounded-br-md px-4 py-3">
                 {Array.isArray(msg.message.content) ? (
                   <>
@@ -261,7 +261,7 @@ export function ChatMessages({ messages, activeChat, activeTab }: ChatMessagesPr
                   <MessageRenderer content={msg.message.content} />
                 )}
               </div>
-              <div className="group flex flex-row gap-2 p-2 items-center">
+              <div className="flex flex-row gap-2 p-2 items-center">
                 <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-row items-center gap-2">
                   <Button
                     variant="ghost"
@@ -271,7 +271,13 @@ export function ChatMessages({ messages, activeChat, activeTab }: ChatMessagesPr
                   >
                     <RefreshCcw className="h-3 w-3" />
                   </Button>
-                  <p className="text-white">{msg.model}</p>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="hidden h-9 w-9 text-gray-400 hover:text-white hover:bg-[#2a2a2a] rounded-xl transition-colors duration-200"
+                  >
+                    <SquarePen className="h-3 w-3" />
+                  </Button>
                 </div>
               </div>
             </div>
