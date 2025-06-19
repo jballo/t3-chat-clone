@@ -38,6 +38,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/atoms/popover";
 import { Card, CardContent, CardFooter, CardHeader } from "@/atoms/card";
 import { SignInButton, SignOutButton } from "@clerk/nextjs";
 import { Textarea } from "@/atoms/textarea";
+import { regnerateResponse } from "../../../../convex/chat";
 
 interface CoreTextPart {
   type: "text";
@@ -117,6 +118,7 @@ export function ChatMessages({ messages, activeChat, activeTab }: ChatMessagesPr
   // Memoize the messages rendering
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const branchChat = useMutation(api.chat.branchChat);
+  const regenerateResponse = useMutation(api.chat.regnerateResponse);
 
   useEffect(() => {
     // Use requestAnimationFrame to ensure DOM is updated
@@ -139,6 +141,53 @@ export function ChatMessages({ messages, activeChat, activeTab }: ChatMessagesPr
       conversation_id: activeChat.id,
       message_id: message_id
     })
+  }
+
+  const regenerateMessage = async (msg: QueryMessage) => {
+    console.log("msg: ", msg);
+    console.log("msg role: ", msg.message.role);
+
+    const targetIndex = messages.findIndex(tempMsg => tempMsg._id === msg._id);
+    if (targetIndex === -1) return;
+
+    console.log("index of message: ", targetIndex);
+
+    const messagesToDelete = (msg.message.role === "user")
+      ? messages.slice(targetIndex, messages.length)
+      : messages.slice(targetIndex - 1, messages.length);
+
+    const messageIdsToDelete: Id<"messages">[] = (msg.message.role === "user")
+      ? messages.slice(targetIndex, messages.length).map(m => m._id)
+      : messages.slice(targetIndex - 1, messages.length).map(m => m._id);
+    // const messageIdsToDelete: Id<"messages">[] = messages.slice(targetIndex, messages.length).map(m => m._id);
+
+    const history: CoreMessage[] = (msg.message.role === "user")
+      ? messages.slice(0, targetIndex + 1).map(m => ({
+        role: m.message.role,
+        content: m.message.content
+      }))
+      : messages.slice(0, targetIndex).map(m => ({
+        role: m.message.role,
+        content: m.message.content
+      }));
+
+    const conversation_id = msg.chat_id;
+
+    const model = msg.model;
+
+    console.log("messagesToDelete: ", messagesToDelete);
+    console.log("history: ", history);
+    console.log("messageIdsToDelete: ", messageIdsToDelete);
+    console.log("conversation_id: ", conversation_id);
+    console.log("model: ", model);
+
+    await regenerateResponse({
+      conversationId: conversation_id,
+      history: history,
+      model: model || "",
+      messageIdsToDelete: messageIdsToDelete
+    })
+
   }
 
   // Memoize the messages rendering
@@ -171,6 +220,7 @@ export function ChatMessages({ messages, activeChat, activeTab }: ChatMessagesPr
                     variant="ghost"
                     size="icon"
                     className="h-9 w-9 text-gray-400 hover:text-white hover:bg-[#2a2a2a] rounded-xl transition-colors duration-200"
+                    onClick={() => regenerateMessage(msg)}
                   >
                     <RefreshCcw className="h-3 w-3" />
                   </Button>
@@ -179,7 +229,7 @@ export function ChatMessages({ messages, activeChat, activeTab }: ChatMessagesPr
               </div>
             </div>
           ) : (
-            <div className="flex justify-end">
+            <div className="flex flex-col items-end">
               <div className="max-w-[80%] bg-[#3a1a2f] text-white rounded-2xl rounded-br-md px-4 py-3">
                 {Array.isArray(msg.message.content) ? (
                   <>
@@ -210,6 +260,19 @@ export function ChatMessages({ messages, activeChat, activeTab }: ChatMessagesPr
                 ) : (
                   <MessageRenderer content={msg.message.content} />
                 )}
+              </div>
+              <div className="group flex flex-row gap-2 p-2 items-center">
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-row items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9 text-gray-400 hover:text-white hover:bg-[#2a2a2a] rounded-xl transition-colors duration-200"
+                    onClick={() => regenerateMessage(msg)}
+                  >
+                    <RefreshCcw className="h-3 w-3" />
+                  </Button>
+                  <p className="text-white">{msg.model}</p>
+                </div>
               </div>
             </div>
           )}
@@ -299,7 +362,7 @@ export function ChatMain({
       activeChat ? { conversationId: activeChat.id } : "skip"
     ) || [];
 
-  console.log("messages: ", messages);
+  // console.log("messages: ", messages);
   const sendMessage = useMutation(api.chat.sendMessage);
   const createChat = useAction(api.chat.createChat);
   const uploadImages = useMutation(api.chat.uploadImages);

@@ -650,3 +650,28 @@ export const branchChat = mutation({
       }
     }
 })
+
+export const regnerateResponse = mutation({
+  args: {
+    conversationId: v.id("chats"),
+    history: v.array(coreMessage),
+    model: v.string(),
+    messageIdsToDelete: v.array(v.id("messages")),
+  },
+  handler: async (ctx, args) => {
+
+    const { conversationId, history, model, messageIdsToDelete } = args;
+
+    // delete all the subsequent messages
+    for (const id of messageIdsToDelete) {
+      await ctx.db.delete(id);
+    }
+
+    // create the regenerated message
+    await ctx.runMutation(api.chat.sendMessage, {
+      conversationId: conversationId,
+      history: history,
+      model: model
+    })
+  }
+})
