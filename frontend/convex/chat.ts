@@ -143,6 +143,7 @@ export const sendMessage = mutation({
       chat_id: conversation_id,
       message: { role: "assistant", content: "" },
       isComplete: false,
+      model: model,
     });
     const fileSupportedLLMs = ["gemini-2.0-flash"];
 
@@ -608,7 +609,8 @@ export const leaveSharedChat = mutation({
 export const branchChat = mutation({
     args: {
       title: v.string(),
-      conversation_id: v.id("chats")
+      conversation_id: v.id("chats"),
+      message_id: v.id("messages")
     },
     handler: async (ctx, args) => {
       const identity = await ctx.auth.getUserIdentity();
@@ -617,17 +619,25 @@ export const branchChat = mutation({
       }
       const user_id = identity.subject;
 
-      const { title, conversation_id } = args;
+      const { title, conversation_id, message_id } = args;
 
       const new_conversation_id = await ctx.db.insert("chats", {
         user_id: user_id,
         title: title
       });
 
-      const messages = await ctx.db
+      const all_messages = await ctx.db
         .query("messages")
         .withIndex("by_chatId", (q) => q.eq("chat_id", conversation_id))
+        .order("asc")
         .collect();
+
+      // find the position of the message on the chronological order
+      const targetIndex = all_messages.findIndex(msg => msg._id === message_id);
+
+      const messages = targetIndex !== -1
+        ? all_messages.slice(0, targetIndex + 1) // include target message
+        : all_messages; // if not found, copy all
 
       for (const msg of messages) {
         await ctx.db.insert("messages", {
