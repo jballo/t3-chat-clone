@@ -116,7 +116,7 @@ export function ChatList({ collapsed, activeChat, onChatSelect, activeTab, setAc
             {!collapsed ? (
                 <>
                     <div className="px-4 pt-4 pb-2">
-                        <Button className="w-full bg-[#3a1a2f] hover:bg-[#4a2a3f] text-white rounded-xl h-11 font-medium transition-colors duration-200"
+                        <Button className="w-full text-white rounded-xl h-11 font-medium transition-colors duration-200"
                             onClick={() => onChatSelect(null)}
                         >
                             <Plus className="w-4 h-4 mr-2" />
@@ -131,20 +131,20 @@ export function ChatList({ collapsed, activeChat, onChatSelect, activeTab, setAc
                                     placeholder="Search your threads..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="pl-10 bg-[#1e1e1e] border-[#2a2a2a] text-gray-300 h-10 rounded-xl focus:border-[#3a1a2f] focus:ring-1 focus:ring-[#3a1a2f] transition-colors duration-200"
+                                    className="pl-10 transition-colors duration-200"
                                 />
                             </div>
-                            <TabsList className="bg-[#1e1e1e] border-[#2a2a2a] mt-2 w-full">
+                            <TabsList className="mt-2 w-full">
                                 <TabsTrigger
                                     value="myChats"
-                                    className="text-gray-300 data-[state=active]:bg-[#3a1a2f] data-[state=active]:text-white"
+                                    className=""
                                     onClick={() => setActiveTab("myChats")}
                                 >
                                     My Chats
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="shared"
-                                    className="text-gray-300 data-[state=active]:bg-[#3a1a2f] data-[state=active]:text-white"
+                                    className=""
                                     onClick={() => setActiveTab("shared")}
                                 >
                                     Shared
@@ -286,7 +286,7 @@ export function ChatSidebar({ collapsed, onToggleCollapse, activeChat, onChatSel
 
     return (
         <div
-            className={`${collapsed ? "w-16" : "w-80"} h-full flex flex-col bg-[#121212] border-r border-[#2a2a2a] transition-all duration-300 ease-in-out`}
+            className={`${collapsed ? "w-16" : "w-80"} h-full flex flex-col border-r border-[#2a2a2a] transition-all duration-300 ease-in-out`}
         >
             {/* Header */}
             <div className="p-4 flex items-center justify-between">

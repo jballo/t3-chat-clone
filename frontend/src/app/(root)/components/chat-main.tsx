@@ -197,7 +197,7 @@ export function ChatMessages({ messages, activeChat, activeTab }: ChatMessagesPr
         <div key={msg._id} className="mb-8">
           {msg.message.role === "assistant" ? (
             <div className="flex flex-col justify-start group">
-              <div className="max-w-[80%] bg-[#2a2a2a] text-white rounded-2xl rounded-bl-md px-4 py-3">
+              <div className="max-w-[80%] bg-muted rounded-2xl rounded-bl-md px-4 py-3">
                 {Array.isArray(msg.message.content) ? (
                   msg.message.content[0].type === "text" ? <MessageRenderer content={msg.message.content[0].text} /> : ''
                 ) : (
@@ -230,7 +230,7 @@ export function ChatMessages({ messages, activeChat, activeTab }: ChatMessagesPr
             </div>
           ) : (
             <div className="flex flex-col items-end group">
-              <div className="max-w-[80%] bg-[#3a1a2f] text-white rounded-2xl rounded-br-md px-4 py-3">
+              <div className="max-w-[80%] bg-primary text-primary-foreground rounded-2xl rounded-br-md px-4 py-3">
                 {Array.isArray(msg.message.content) ? (
                   <>
                     {msg.message.content[0].type === "text" ? <MessageRenderer content={msg.message.content[0].text} /> : ''}
@@ -551,7 +551,7 @@ export function ChatMain({
   // }
 
   return (
-    <div className="flex flex-col h-full bg-[#1a1a1a]">
+    <div className="flex flex-col h-full">
       {/* Chat header */}
       <div className="flex items-center justify-between p-4 border-b border-[#2a2a2a] bg-[#1a1a1a]">
         <div className="flex items-center gap-3">
