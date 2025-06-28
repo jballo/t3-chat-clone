@@ -74,13 +74,13 @@ export function ModelSelector({ selectedModel, setSelectedModel }: ModelSelector
             <PopoverTrigger>
                 <ModelDropdownButton selectedModel={selectedModel} />
             </PopoverTrigger>
-            <PopoverContent className="p-0 bg-[#121212] border border-[#2a2a2a] rounded-lg shadow-lg">
-                <Command className="bg-[#121212] text-gray-300 p-2">
+            <PopoverContent className="p-0 border border-[#2a2a2a] rounded-lg shadow-lg">
+                <Command className="p-2">
                     <CommandInput
                         placeholder="Type model name here..."
-                        className="bg-[#1e1e1e] border border-[#2a2a2a] text-gray-300 rounded-lg h-7 p-2"
+                        className="border border-[#2a2a2a] rounded-lg h-7 p-2"
                     />
-                    <CommandList className="bg-[#121212] py-2">
+                    <CommandList className="py-2">
                         <CommandEmpty className="text-gray-500">No Model Found</CommandEmpty>
                         {allModels.map(model => (
                             <CommandItem
@@ -94,7 +94,7 @@ export function ModelSelector({ selectedModel, setSelectedModel }: ModelSelector
                                 <span className="flex gap-2">
                                     {model.capabilities.map((capability, idx) => {
                                         const Icon = capabilityIcons[capability];
-                                        return Icon ? <Icon key={idx} className="w-4 h-4 text-gray-300" /> : null;
+                                        return Icon ? <Icon key={idx} className="w-4 h-4" /> : null;
                                     })}
                                 </span>
                             </CommandItem>

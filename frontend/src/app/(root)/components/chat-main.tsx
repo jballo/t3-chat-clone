@@ -563,9 +563,9 @@ export function ChatMain({
   return (
     <div className="flex flex-col h-full">
       {/* Chat header */}
-      <div className="flex items-center justify-between p-4 border-b border-[#2a2a2a] bg-[#1a1a1a]">
+      <div className="flex items-center justify-between p-4 border-b border-[#2a2a2a]">
         <div className="flex items-center gap-3">
-          <h2 className="text-white font-semibold text-lg">{activeChat ? activeChat.title : "Chat"}</h2>
+          <h2 className="font-semibold text-lg">{activeChat ? activeChat.title : "Chat"}</h2>
         </div>
         <div className="flex items-center gap-2">
           <Authenticated>
@@ -788,7 +788,7 @@ export function ChatMain({
       </div>
 
       {/* Message input */}
-      <div className="p-6 border-t border-[#2a2a2a] bg-[#1a1a1a]">
+      <div className="p-6 border-t border-[#2a2a2a]">
         <div className="flex flex-col  gap-3 max-w-4xl mx-auto">
           <div className="flex flex-row w-full gap-4">
             {uploadedFiles.map((file, index) => {
@@ -819,7 +819,7 @@ export function ChatMain({
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={handleKeyPress}
-              className="pr-32 pl-6 py-3 bg-[#1e1e1e] border-[#3a3a3a] text-white rounded-2xl focus:border-[#3a1a2f] focus:ring-2 focus:ring-[#3a1a2f]/25 transition-colors duration-200 text-base"
+              className="pr-32 pl-6 py-3 border-[#3a3a3a] rounded-2xl focus:border-[#3a1a2f] focus:ring-2 focus:ring-[#3a1a2f]/25 transition-colors duration-200 text-base"
             />
             <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
               {(selectedModel.capabilities.includes('image') || selectedModel.capabilities.includes('pdf')) && (
@@ -868,7 +868,7 @@ export function ChatMain({
               />
               <Button
                 size="icon"
-                className="h-9 w-9 bg-[#3a1a2f] hover:bg-[#4a2a3f] rounded-xl transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="h-9 w-9 rounded-xl transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={handleSendMessage}
                 disabled={!message.trim()}
               >
