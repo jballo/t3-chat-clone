@@ -155,16 +155,16 @@ export function ChatList({ collapsed, activeChat, onChatSelect, activeTab, setAc
                                     <div
                                         key={conversation._id}
                                         onClick={() => onChatSelect({ id: conversation._id, title: conversation.title })}
-                                        className={`mb-1 px-3 py-3 rounded-xl cursor-pointer text-gray-300 text-sm transition-colors duration-150 hover:bg-[#2a2a2a] relative ${activeChat?.id === conversation._id ? "bg-[#2a1a2f]" : ""
+                                        className={`mb-1 px-3 py-3 rounded-xl cursor-pointer text-gray-300 text-sm transition-colors duration-150 hover:bg-[#2a2a2a] relative ${activeChat?.id === conversation._id ? "bg-sidebar-accent" : ""
                                             }`}
                                     >
                                         {activeChat?.id === conversation._id && (
                                             <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#8b5cf6] rounded-r-full" />
                                         )}
                                         <div className="flex flex-row justify-between">
-                                            <div className="flex flex-col">
-                                                <div className="font-medium text-white mb-1 line-clamp-1">{conversation.title}</div>
-                                                <div className="text-xs text-gray-500">
+                                            <div className="flex flex-col text-sidebar-foreground">
+                                                <div className="font-medium mb-1 line-clamp-1">{conversation.title}</div>
+                                                <div className="text-xs">
                                                     {new Date(conversation._creationTime).toLocaleString()}
                                                 </div>
                                             </div>
@@ -307,7 +307,7 @@ export function ChatSidebar({ collapsed, onToggleCollapse, activeChat, onChatSel
                     {!collapsed && (
                         <div className="flex items-center">
                             <h1 className="text-white text-xl font-bold flex items-center">
-                                T<span className="text-4xl ml-1 mr-1 pb-1 align-middle text-[#8f296c]" >∞</span>.chat
+                                T<span className="text-4xl ml-1 mr-1 pb-1 align-middle text-primary" >∞</span>.chat
                             </h1>
                         </div>
                     )}
