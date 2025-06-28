@@ -22,6 +22,8 @@ import {
   LogIn,
   RefreshCcw,
   SquarePen,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { Button } from "@/atoms/button";
 import { Input } from "@/atoms/input";
@@ -39,6 +41,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/atoms/popover";
 import { Card, CardContent, CardFooter, CardHeader } from "@/atoms/card";
 import { SignInButton, SignOutButton } from "@clerk/nextjs";
 import { Textarea } from "@/atoms/textarea";
+import { useTheme } from "next-themes";
 
 interface CoreTextPart {
   type: "text";
@@ -356,6 +359,7 @@ export function ChatMain({
   setSelectedModel,
   activeTab
 }: ChatMainProps) {
+  const { theme, setTheme } = useTheme();
   const { isLoading, isAuthenticated } = useConvexAuth();
   const [message, setMessage] = useState("");
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
@@ -542,6 +546,12 @@ export function ChatMain({
     setEmail("")
   }
 
+
+  const toggleTheme = () => {
+    const newTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(newTheme);
+  }
+
   // const onBranchChat = async () => {
   //   if (!activeChat) return;
   //   await branchChat({
@@ -697,6 +707,17 @@ export function ChatMain({
 
             </SignInButton>
           </Unauthenticated>
+          <Button
+            variant="ghost"
+            className="p-0 text-md w-6 h-6 flex"
+            onClick={toggleTheme}
+          >
+            {theme === 'dark' ? (
+              <Sun className="text-yellow-200" />
+            ) : (
+              <Moon className="text-violet-600" />
+            )}
+          </Button>
         </div>
       </div>
 
