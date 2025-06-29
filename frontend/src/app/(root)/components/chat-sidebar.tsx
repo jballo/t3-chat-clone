@@ -180,20 +180,20 @@ export function ChatList({ collapsed, activeChat, onChatSelect, activeTab, setAc
                                     <div
                                         key={conversation._id}
                                         onClick={() => onChatSelect({ id: conversation._id, title: conversation.title })}
-                                        className={`mb-1 px-3 py-3 rounded-xl cursor-pointer text-gray-300 text-sm transition-colors duration-150 hover:bg-[#2a2a2a] relative ${activeChat?.id === conversation._id ? "bg-[#2a1a2f]" : ""
+                                        className={`mb-1 px-3 py-3 rounded-xl cursor-pointer text-sm transition-colors duration-150 hover:bg-[#2a2a2a] hover:text-white relative ${activeChat?.id === conversation._id ? "bg-sidebar-accent text-sidebar-accent-foreground hover:text-white" : ""
                                             }`}
                                     >
-                                        {activeChat?.id === conversation._id && (
+                                        {/* {activeChat?.id === conversation._id && (
                                             <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#8b5cf6] rounded-r-full" />
-                                        )}
+                                        )} */}
                                         <div className="flex flex-row justify-between">
                                             <div className="flex flex-col">
-                                                <div className="font-medium text-white mb-1 line-clamp-1">{conversation.title}</div>
-                                                <div className="text-xs text-gray-500">
+                                                <div className="font-medium mb-1 line-clamp-1">{conversation.title}</div>
+                                                <div className="text-xs">
                                                     {new Date(conversation._creationTime).toLocaleString()}
                                                 </div>
                                             </div>
-                                            <Button className={`bg-transparent hover:bg-[#3a1a2f] ${activeChat?.id === conversation._id ? "" : "hidden"}`} onClick={() => handleLeaveChat(conversation._id)}>
+                                            <Button className={`bg-transparent ${activeChat?.id === conversation._id ? "" : "hidden"}`} onClick={() => handleLeaveChat(conversation._id)}>
                                                 <LogOut />
                                             </Button>
                                         </div>
