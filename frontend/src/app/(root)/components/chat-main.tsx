@@ -310,27 +310,27 @@ export function InvitationList() {
     <>
       {(pendingInvitations && pendingInvitations.length > 0) ? (pendingInvitations.map(invitation => (
         <div key={invitation._id} className="flex flex-col gap-2 p-3 border border-[#2a2a2a] rounded-xl mb-2">
-          <p className="text-base font-bold text-white">
+          <p className="text-base font-bold">
             {invitation.chat_name}
           </p>
-          <p className="text-sm text-gray-400">
+          <p className="text-sm">
             {invitation.author_email} shared a chat.
           </p>
           <div className="flex flex-row items-center justify-between">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm">
               {new Date(invitation._creationTime).toLocaleDateString()}
             </p>
             <div className="flex flex-row gap-2">
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 text-gray-400 hover:text-white hover:bg-[#2a2a2a] rounded-xl"
+                className="h-8 w-8 rounded-xl"
                 onClick={() => denyInvite({ invitation_id: invitation._id })}
               >
                 <XIcon className="h-4 w-4" />
               </Button>
               <Button
-                className="bg-[#3a1a2f] hover:bg-[#4a2a3f] text-white rounded-xl px-3 py-1 text-sm"
+                className="rounded-xl px-3 py-1 text-sm"
                 onClick={() => acceptInvite({ invitation_id: invitation._id })}
               >
                 <Check className="h-4 w-4 mr-1" /> Accept
@@ -660,13 +660,13 @@ export function ChatMain({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-9 w-9 text-gray-400 hover:text-white hover:bg-[#2a2a2a] rounded-xl transition-colors duration-200"
+                  className="h-9 w-9 rounded-xl transition-colors duration-200"
                 >
                   <Bell className="h-5 w-5" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="bg-[#1e1e1e] border-none p-0 w-80">
-                <Card className="bg-[#1e1e1e] border-[1px] border-[#2a2a2a] text-white">
+              <PopoverContent className="border-none p-0 w-80">
+                <Card className="border-[1px]">
                   <CardHeader className="text-lg font-semibold">
                     Chat Invitations
                   </CardHeader>
