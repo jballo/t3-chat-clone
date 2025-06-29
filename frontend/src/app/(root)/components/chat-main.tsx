@@ -227,7 +227,7 @@ export function ChatMessages({ messages, activeChat, activeTab }: ChatMessagesPr
                   >
                     <RefreshCcw className="h-3 w-3" />
                   </Button>
-                  <p className="text-white text-xs">{msg.model}</p>
+                  <p className="text-xs">{msg.model}</p>
                 </div>
               </div>
             </div>
@@ -722,7 +722,7 @@ export function ChatMain({
       </div>
 
       {/* Chat messages */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto bg-card">
         <Authenticated>
           {activeChat ? (
             <ChatMessages messages={messages} activeChat={activeChat} activeTab={activeTab} />
@@ -788,7 +788,7 @@ export function ChatMain({
       </div>
 
       {/* Message input */}
-      <div className="p-6 border-t border-[#2a2a2a]">
+      <div className="p-6 bg-card">
         <div className="flex flex-col  gap-3 max-w-4xl mx-auto">
           <div className="flex flex-row w-full gap-4">
             {uploadedFiles.map((file, index) => {

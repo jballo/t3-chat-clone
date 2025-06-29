@@ -155,20 +155,20 @@ export function ChatList({ collapsed, activeChat, onChatSelect, activeTab, setAc
                                     <div
                                         key={conversation._id}
                                         onClick={() => onChatSelect({ id: conversation._id, title: conversation.title })}
-                                        className={`mb-1 px-3 py-3 rounded-xl cursor-pointer text-gray-300 text-sm transition-colors duration-150 hover:bg-[#2a2a2a] relative ${activeChat?.id === conversation._id ? "bg-sidebar-accent" : ""
+                                        className={`mb-1 px-3 py-3 rounded-xl cursor-pointer text-sm transition-colors duration-150 hover:bg-[#2a2a2a] hover:text-white relative ${activeChat?.id === conversation._id ? "bg-sidebar-accent text-sidebar-accent-foreground hover:text-white" : ""
                                             }`}
                                     >
-                                        {activeChat?.id === conversation._id && (
-                                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#8b5cf6] rounded-r-full" />
-                                        )}
+                                        {/* {activeChat?.id === conversation._id && (
+                                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-sidebar-border rounded-r-full" />
+                                        )} */}
                                         <div className="flex flex-row justify-between">
-                                            <div className="flex flex-col text-sidebar-foreground">
+                                            <div className="flex flex-col">
                                                 <div className="font-medium mb-1 line-clamp-1">{conversation.title}</div>
                                                 <div className="text-xs">
                                                     {new Date(conversation._creationTime).toLocaleString()}
                                                 </div>
                                             </div>
-                                            <Button className={`bg-transparent hover:bg-[#3a1a2f] ${activeChat?.id === conversation._id ? "" : "hidden"}`} onClick={() => handleDeleteChat(conversation._id)}>
+                                            <Button className={`bg-transparent ${activeChat?.id === conversation._id ? "" : "hidden"}`} onClick={() => handleDeleteChat(conversation._id)}>
                                                 <Trash />
                                             </Button>
                                         </div>
@@ -306,7 +306,7 @@ export function ChatSidebar({ collapsed, onToggleCollapse, activeChat, onChatSel
                     </button>
                     {!collapsed && (
                         <div className="flex items-center">
-                            <h1 className="text-white text-xl font-bold flex items-center">
+                            <h1 className="text-xl font-bold flex items-center">
                                 T<span className="text-4xl ml-1 mr-1 pb-1 align-middle text-primary" >∞</span>.chat
                             </h1>
                         </div>
