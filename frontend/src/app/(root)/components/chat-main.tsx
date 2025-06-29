@@ -227,7 +227,7 @@ export function ChatMessages({ messages, activeChat, activeTab }: ChatMessagesPr
                   >
                     <RefreshCcw className="h-3 w-3" />
                   </Button>
-                  <p className="text-white text-xs">{msg.model}</p>
+                  <p className="text-xs">{msg.model}</p>
                 </div>
               </div>
             </div>
@@ -310,27 +310,27 @@ export function InvitationList() {
     <>
       {(pendingInvitations && pendingInvitations.length > 0) ? (pendingInvitations.map(invitation => (
         <div key={invitation._id} className="flex flex-col gap-2 p-3 border border-[#2a2a2a] rounded-xl mb-2">
-          <p className="text-base font-bold text-white">
+          <p className="text-base font-bold">
             {invitation.chat_name}
           </p>
-          <p className="text-sm text-gray-400">
+          <p className="text-sm">
             {invitation.author_email} shared a chat.
           </p>
           <div className="flex flex-row items-center justify-between">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm">
               {new Date(invitation._creationTime).toLocaleDateString()}
             </p>
             <div className="flex flex-row gap-2">
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 text-gray-400 hover:text-white hover:bg-[#2a2a2a] rounded-xl"
+                className="h-8 w-8 rounded-xl"
                 onClick={() => denyInvite({ invitation_id: invitation._id })}
               >
                 <XIcon className="h-4 w-4" />
               </Button>
               <Button
-                className="bg-[#3a1a2f] hover:bg-[#4a2a3f] text-white rounded-xl px-3 py-1 text-sm"
+                className="rounded-xl px-3 py-1 text-sm"
                 onClick={() => acceptInvite({ invitation_id: invitation._id })}
               >
                 <Check className="h-4 w-4 mr-1" /> Accept
@@ -563,9 +563,9 @@ export function ChatMain({
   return (
     <div className="flex flex-col h-full">
       {/* Chat header */}
-      <div className="flex items-center justify-between p-4 border-b border-[#2a2a2a] bg-[#1a1a1a]">
+      <div className="flex items-center justify-between p-4 border-b border-[#2a2a2a]">
         <div className="flex items-center gap-3">
-          <h2 className="text-white font-semibold text-lg">{activeChat ? activeChat.title : "Chat"}</h2>
+          <h2 className="font-semibold text-lg">{activeChat ? activeChat.title : "Chat"}</h2>
         </div>
         <div className="flex items-center gap-2">
           <Authenticated>
@@ -584,64 +584,64 @@ export function ChatMain({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-9 w-9 text-gray-400 hover:text-white hover:bg-[#2a2a2a] rounded-xl transition-colors duration-200"
+                      className="h-9 w-9 rounded-xl transition-colors duration-200"
                     >
                       <Share className="h-5 w-5" />
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-2xl p-6 shadow-lg gap-4">
-                    <DialogPrimitive.Close className="absolute top-4 right-4 rounded-sm text-white hover:opacity-75">
+                  <DialogContent className="border rounded-2xl p-6 shadow-lg gap-4">
+                    <DialogPrimitive.Close className="absolute top-4 right-4 rounded-sm hover:opacity-75">
                       <XIcon className="h-4 w-4" />
                       <span className="sr-only">Close</span>
                     </DialogPrimitive.Close>
                     <DialogHeader>
-                      <DialogTitle className="text-white font-semibold">
+                      <DialogTitle className="font-semibold">
                         Share {activeChat?.title}
                       </DialogTitle>
-                      <DialogDescription className="text-gray-400">
+                      <DialogDescription className="">
                         Share your chat with other users on the platform. Enter their email.
                       </DialogDescription>
                     </DialogHeader>
                     <div className="flex flex-col gap-8">
                       <div className="flex flex-row items-center gap-3">
-                        <label className="text-gray-400">
+                        <label className="">
                           <Mail className="h-8" />
                         </label>
                         <Input
                           type="email"
-                          className="bg-[#1e1e1e] text-white border border-[#3a3a3a] rounded-md h-8"
+                          className="border rounded-md h-8"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                         />
                       </div>
                       <div className="flex flex-row items-end justify-between">
                         <Tabs defaultValue="edit">
-                          <TabsList className="bg-[#2a2a2a] border border-[#3a3a3a] rounded-xl p-1">
+                          <TabsList className="border rounded-xl p-1">
                             <TabsTrigger
                               value="edit"
-                              className="px-4 py-2 rounded-md text-gray-300 hover:text-white transition-colors duration-200 data-[state=active]:bg-[#2A1A2F] data-[state=active]:text-white"
+                              className="px-4 py-2 rounded-md transition-colors duration-200"
                             >
                               Edit
                             </TabsTrigger>
                             <TabsTrigger
                               value="view"
-                              className="px-4 py-2 rounded-md text-gray-300 hover:text-white transition-colors duration-200 data-[state=active]:bg-[#2A1A2F] data-[state=active]:text-white"
+                              className="px-4 py-2 rounded-md transition-colors duration-200"
                             >
                               View
                             </TabsTrigger>
                           </TabsList>
-                          <TabsContent value="edit" className="mt-2 text-gray-300">
+                          <TabsContent value="edit" className="mt-2">
                             Let another user add additions to this chat.
                             <br />
                             <strong>IMPORTANT</strong>: User must already be signed up.
                           </TabsContent>
-                          <TabsContent value="view" className="mt-2 text-gray-300">
+                          <TabsContent value="view" className="mt-2">
                             Coming soon...
                           </TabsContent>
                         </Tabs>
                         <DialogClose asChild>
                           <Button
-                            className="bg-[#3a1a2f] hover:bg-[#4a2a3f] text-white rounded-xl transition-colors duration-200"
+                            className="rounded-xl transition-colors duration-200"
                             onClick={shareChat}
                           >
                             Submit
@@ -660,13 +660,13 @@ export function ChatMain({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-9 w-9 text-gray-400 hover:text-white hover:bg-[#2a2a2a] rounded-xl transition-colors duration-200"
+                  className="h-9 w-9 rounded-xl transition-colors duration-200"
                 >
                   <Bell className="h-5 w-5" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="bg-[#1e1e1e] border-none p-0 w-80">
-                <Card className="bg-[#1e1e1e] border-[1px] border-[#2a2a2a] text-white">
+              <PopoverContent className="border-none p-0 w-80">
+                <Card className="border-[1px]">
                   <CardHeader className="text-lg font-semibold">
                     Chat Invitations
                   </CardHeader>
@@ -689,7 +689,7 @@ export function ChatMain({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9 text-gray-400 hover:text-white hover:bg-[#2a2a2a] rounded-xl transition-colors duration-200"
+                className="h-9 w-9 rounded-xl transition-colors duration-200"
               >
                 <LogOut className="h-5 w-5" />
               </Button>
@@ -700,7 +700,7 @@ export function ChatMain({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9 text-gray-400 hover:text-white hover:bg-[#2a2a2a] rounded-xl transition-colors duration-200"
+                className="h-9 w-9 rounded-xl transition-colors duration-200"
               >
                 <LogIn className="h-5 w-5" />
               </Button>
@@ -722,7 +722,7 @@ export function ChatMain({
       </div>
 
       {/* Chat messages */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto bg-card">
         <Authenticated>
           {activeChat ? (
             <ChatMessages messages={messages} activeChat={activeChat} activeTab={activeTab} />
@@ -746,37 +746,37 @@ export function ChatMain({
               <div className="grid grid-cols-2 gap-4 mt-8 max-w-2xl mx-auto">
                 <Button
                   variant="outline"
-                  className="flex items-center justify-start gap-3 h-16 bg-[#1e1e1e] border-[#3a3a3a] hover:bg-[#2a2a2a] text-white rounded-2xl transition-colors duration-200"
+                  className="flex items-center justify-start gap-3 h-16 rounded-2xl transition-colors duration-200"
                 >
-                  <div className="w-10 h-10 bg-[#3a1a2f] rounded-xl flex items-center justify-center">
-                    <Sparkles className="h-5 w-5 text-white" />
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center">
+                    <Sparkles className="h-5 w-5" />
                   </div>
                   <span className="font-medium">Create</span>
                 </Button>
                 <Button
                   variant="outline"
-                  className="flex items-center justify-start gap-3 h-16 bg-[#1e1e1e] border-[#3a3a3a] hover:bg-[#2a2a2a] text-white rounded-2xl transition-colors duration-200"
+                  className="flex items-center justify-start gap-3 h-16 rounded-2xl transition-colors duration-200"
                 >
-                  <div className="w-10 h-10 bg-[#3a1a2f] rounded-xl flex items-center justify-center">
-                    <HighlightIcon className="h-5 w-5 text-white" />
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center">
+                    <HighlightIcon className="h-5 w-5" />
                   </div>
                   <span className="font-medium">Explore</span>
                 </Button>
                 <Button
                   variant="outline"
-                  className="flex items-center justify-start gap-3 h-16 bg-[#1e1e1e] border-[#3a3a3a] hover:bg-[#2a2a2a] text-white rounded-2xl transition-colors duration-200"
+                  className="flex items-center justify-start gap-3 h-16 rounded-2xl transition-colors duration-200"
                 >
-                  <div className="w-10 h-10 bg-[#3a1a2f] rounded-xl flex items-center justify-center">
-                    <Code className="h-5 w-5 text-white" />
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center">
+                    <Code className="h-5 w-5" />
                   </div>
                   <span className="font-medium">Code</span>
                 </Button>
                 <Button
                   variant="outline"
-                  className="flex items-center justify-start gap-3 h-16 bg-[#1e1e1e] border-[#3a3a3a] hover:bg-[#2a2a2a] text-white rounded-2xl transition-colors duration-200"
+                  className="flex items-center justify-start gap-3 h-16 rounded-2xl transition-colors duration-200"
                 >
-                  <div className="w-10 h-10 bg-[#3a1a2f] rounded-xl flex items-center justify-center">
-                    <BookOpen className="h-5 w-5 text-white" />
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center">
+                    <BookOpen className="h-5 w-5" />
                   </div>
                   <span className="font-medium">Learn</span>
                 </Button>
@@ -788,7 +788,7 @@ export function ChatMain({
       </div>
 
       {/* Message input */}
-      <div className="p-6 border-t border-[#2a2a2a] bg-[#1a1a1a]">
+      <div className="p-6 bg-card">
         <div className="flex flex-col  gap-3 max-w-4xl mx-auto">
           <div className="flex flex-row w-full gap-4">
             {uploadedFiles.map((file, index) => {
@@ -819,7 +819,7 @@ export function ChatMain({
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={handleKeyPress}
-              className="pr-32 pl-6 py-3 bg-[#1e1e1e] border-[#3a3a3a] text-white rounded-2xl focus:border-[#3a1a2f] focus:ring-2 focus:ring-[#3a1a2f]/25 transition-colors duration-200 text-base"
+              className="pr-32 pl-6 py-3 border-[#3a3a3a] rounded-2xl focus:border-[#3a1a2f] focus:ring-2 focus:ring-[#3a1a2f]/25 transition-colors duration-200 text-base"
             />
             <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
               {(selectedModel.capabilities.includes('image') || selectedModel.capabilities.includes('pdf')) && (
@@ -868,7 +868,7 @@ export function ChatMain({
               />
               <Button
                 size="icon"
-                className="h-9 w-9 bg-[#3a1a2f] hover:bg-[#4a2a3f] rounded-xl transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="h-9 w-9 rounded-xl transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 onClick={handleSendMessage}
                 disabled={!message.trim()}
               >

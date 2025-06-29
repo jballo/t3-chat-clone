@@ -155,20 +155,20 @@ export function ChatList({ collapsed, activeChat, onChatSelect, activeTab, setAc
                                     <div
                                         key={conversation._id}
                                         onClick={() => onChatSelect({ id: conversation._id, title: conversation.title })}
-                                        className={`mb-1 px-3 py-3 rounded-xl cursor-pointer text-gray-300 text-sm transition-colors duration-150 hover:bg-[#2a2a2a] relative ${activeChat?.id === conversation._id ? "bg-sidebar-accent" : ""
+                                        className={`mb-1 px-3 py-3 rounded-xl cursor-pointer text-sm transition-colors duration-150 hover:bg-[#2a2a2a] hover:text-white relative ${activeChat?.id === conversation._id ? "bg-sidebar-accent text-sidebar-accent-foreground hover:text-white" : ""
                                             }`}
                                     >
-                                        {activeChat?.id === conversation._id && (
-                                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#8b5cf6] rounded-r-full" />
-                                        )}
+                                        {/* {activeChat?.id === conversation._id && (
+                                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-sidebar-border rounded-r-full" />
+                                        )} */}
                                         <div className="flex flex-row justify-between">
-                                            <div className="flex flex-col text-sidebar-foreground">
+                                            <div className="flex flex-col">
                                                 <div className="font-medium mb-1 line-clamp-1">{conversation.title}</div>
                                                 <div className="text-xs">
                                                     {new Date(conversation._creationTime).toLocaleString()}
                                                 </div>
                                             </div>
-                                            <Button className={`bg-transparent hover:bg-[#3a1a2f] ${activeChat?.id === conversation._id ? "" : "hidden"}`} onClick={() => handleDeleteChat(conversation._id)}>
+                                            <Button className={`bg-transparent ${activeChat?.id === conversation._id ? "" : "hidden"}`} onClick={() => handleDeleteChat(conversation._id)}>
                                                 <Trash />
                                             </Button>
                                         </div>
@@ -180,20 +180,20 @@ export function ChatList({ collapsed, activeChat, onChatSelect, activeTab, setAc
                                     <div
                                         key={conversation._id}
                                         onClick={() => onChatSelect({ id: conversation._id, title: conversation.title })}
-                                        className={`mb-1 px-3 py-3 rounded-xl cursor-pointer text-gray-300 text-sm transition-colors duration-150 hover:bg-[#2a2a2a] relative ${activeChat?.id === conversation._id ? "bg-[#2a1a2f]" : ""
+                                        className={`mb-1 px-3 py-3 rounded-xl cursor-pointer text-sm transition-colors duration-150 hover:bg-[#2a2a2a] hover:text-white relative ${activeChat?.id === conversation._id ? "bg-sidebar-accent text-sidebar-accent-foreground hover:text-white" : ""
                                             }`}
                                     >
-                                        {activeChat?.id === conversation._id && (
+                                        {/* {activeChat?.id === conversation._id && (
                                             <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#8b5cf6] rounded-r-full" />
-                                        )}
+                                        )} */}
                                         <div className="flex flex-row justify-between">
                                             <div className="flex flex-col">
-                                                <div className="font-medium text-white mb-1 line-clamp-1">{conversation.title}</div>
-                                                <div className="text-xs text-gray-500">
+                                                <div className="font-medium mb-1 line-clamp-1">{conversation.title}</div>
+                                                <div className="text-xs">
                                                     {new Date(conversation._creationTime).toLocaleString()}
                                                 </div>
                                             </div>
-                                            <Button className={`bg-transparent hover:bg-[#3a1a2f] ${activeChat?.id === conversation._id ? "" : "hidden"}`} onClick={() => handleLeaveChat(conversation._id)}>
+                                            <Button className={`bg-transparent ${activeChat?.id === conversation._id ? "" : "hidden"}`} onClick={() => handleLeaveChat(conversation._id)}>
                                                 <LogOut />
                                             </Button>
                                         </div>
@@ -205,12 +205,12 @@ export function ChatList({ collapsed, activeChat, onChatSelect, activeTab, setAc
                 </>
             ) : (
                 <div className="flex flex-col items-center gap-3 p-2">
-                    <button
+                    <Button
                         onClick={() => onChatSelect(null)}
-                        className={clsx(`w-12 h-12 rounded-xl flex items-center justify-center text-xs font-bold transition-colors duration-150 text-white bg-[#3a1a2f] hover:bg-[#4a2a3f]`)}
+                        className={clsx(`w-12 h-12 rounded-xl flex items-center justify-center text-xs font-bold transition-colors duration-150 text-white`)}
                     >
                         <Plus className="w-4 h-4" />
-                    </button>
+                    </Button>
                     <Separator className="border-[0.5px] border-[#3a3a3a]" />
 
                     <Button
@@ -218,7 +218,7 @@ export function ChatList({ collapsed, activeChat, onChatSelect, activeTab, setAc
                         className={clsx(
                             "w-12 h-12 rounded-xl flex items-center justify-center text-xs font-bold transition-colors duration-150",
                             activeTab === "myChats"
-                                ? "bg-[#3a1a2f] hover:bg-[#4a2a3f] text-white"
+                                ? "text-white"
                                 : "bg-[#1e1e1e] text-gray-400 hover:bg-[#2a2a2a] hover:text-white"
                         )}
                     >
@@ -229,7 +229,7 @@ export function ChatList({ collapsed, activeChat, onChatSelect, activeTab, setAc
                         className={clsx(
                             "w-12 h-12 rounded-xl flex items-center justify-center text-xs font-bold transition-colors duration-150",
                             activeTab === "shared"
-                                ? "bg-[#3a1a2f] hover:bg-[#4a2a3f] text-white"
+                                ? "text-white"
                                 : "bg-[#1e1e1e] text-gray-400 hover:bg-[#2a2a2a] hover:text-white"
                         )}
                     >
@@ -240,33 +240,33 @@ export function ChatList({ collapsed, activeChat, onChatSelect, activeTab, setAc
                     {(activeTab === "myChats") ? (
                         <>
                             {filteredConversations.slice(0, 8).map((conversation) => (
-                                <button
+                                <Button
                                     key={conversation._id}
                                     onClick={() => onChatSelect({ id: conversation._id, title: conversation.title })}
                                     className={`w-12 h-12 rounded-xl flex items-center justify-center text-xs font-bold transition-colors duration-150 ${activeChat?.id === conversation._id
-                                        ? "bg-[#2a1a2f] text-white"
-                                        : "bg-[#1e1e1e] text-gray-400 hover:bg-[#2a2a2a] hover:text-white"
+                                        ? "bg-sidebar-accent hover:bg-[#1e1e1e] text-sidebar-accent-foreground hover:text-white "
+                                        : "bg-[#1e1e1e] hover:bg-[#1e1e1e] text-gray-400 hover:text-white"
                                         }`}
                                     title={conversation.title}
                                 >
                                     {conversation.title.slice(0, 2).toUpperCase()}
-                                </button>
+                                </Button>
                             ))}
                         </>
                     ) : (
                         <>
                             {filteredSharedChats.slice(0, 8).map((conversation) => (
-                                <button
+                                <Button
                                     key={conversation._id}
                                     onClick={() => onChatSelect({ id: conversation._id, title: conversation.title })}
                                     className={`w-12 h-12 rounded-xl flex items-center justify-center text-xs font-bold transition-colors duration-150 ${activeChat?.id === conversation._id
-                                        ? "bg-[#2a1a2f] text-white"
-                                        : "bg-[#1e1e1e] text-gray-400 hover:bg-[#2a2a2a] hover:text-white"
+                                        ? "bg-sidebar-accent hover:bg-[#1e1e1e] text-sidebar-accent-foreground hover:text-white "
+                                        : "bg-[#1e1e1e] hover:bg-[#1e1e1e] text-gray-400 hover:text-white"
                                         }`}
                                     title={conversation.title}
                                 >
                                     {conversation.title.slice(0, 2).toUpperCase()}
-                                </button>
+                                </Button>
                             ))}
                         </>
                     )}
@@ -291,22 +291,23 @@ export function ChatSidebar({ collapsed, onToggleCollapse, activeChat, onChatSel
             {/* Header */}
             <div className="p-4 flex items-center justify-between">
                 <div className={`flex items-center ${collapsed ? "justify-center" : ""}`}>
-                    <button
+                    <Button
+                        variant="ghost"
                         onClick={onToggleCollapse}
-                        className="w-8 h-8 mr-3 hover:bg-[#2a2a2a] rounded-lg flex items-center justify-center transition-colors duration-200"
+                        className="w-8 h-8 mr-3 rounded-lg flex items-center justify-center transition-colors duration-200"
                     >
                         <svg
                             viewBox="0 0 24 24"
                             fill="none"
                             xmlns="http://www.w3.org/2000/svg"
-                            className="w-5 h-5 text-gray-400 hover:text-white transition-colors"
+                            className="w-5 h-5 transition-colors"
                         >
                             <path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                         </svg>
-                    </button>
+                    </Button>
                     {!collapsed && (
                         <div className="flex items-center">
-                            <h1 className="text-white text-xl font-bold flex items-center">
+                            <h1 className="text-xl font-bold flex items-center">
                                 T<span className="text-4xl ml-1 mr-1 pb-1 align-middle text-primary" >∞</span>.chat
                             </h1>
                         </div>
@@ -335,10 +336,10 @@ export function ChatSidebar({ collapsed, onToggleCollapse, activeChat, onChatSel
                             <Authenticated>
                                 <Avatar className="h-10 w-10 mr-3">
                                     <AvatarImage src={user?.imageUrl} />
-                                    <AvatarFallback className="bg-[#3a1a2f] text-white font-bold">User</AvatarFallback>
+                                    <AvatarFallback className="font-bold">User</AvatarFallback>
                                 </Avatar>
                                 <div className="flex-1 flex flex-col">
-                                    <span className="text-sm font-medium text-white">{user?.fullName}</span>
+                                    <span className="text-sm font-medium">{user?.fullName}</span>
                                     <div className="flex items-center">
                                         <span className="text-xs text-[#8b5cf6] font-medium">Starter</span>
                                         <div className="w-1 h-1 bg-green-500 rounded-full ml-2" />
@@ -346,14 +347,14 @@ export function ChatSidebar({ collapsed, onToggleCollapse, activeChat, onChatSel
                                 </div>
                             </Authenticated>
                             <Unauthenticated>
-                                <div className="text-white">
+                                <div className="">
                                     Click to Sign In
                                 </div>
                             </Unauthenticated>
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="h-8 w-8 text-gray-400 hover:text-white hover:bg-[#2a2a2a] transition-colors duration-200"
+                                className="h-8 w-8 transition-colors duration-200"
                             >
                                 <Settings className="h-4 w-4" />
                             </Button>
@@ -363,8 +364,8 @@ export function ChatSidebar({ collapsed, onToggleCollapse, activeChat, onChatSel
                     <div className="p-2 border-t border-[#2a2a2a] flex justify-center">
                         <Authenticated>
                             <Avatar className="h-12 w-12 cursor-pointer transition-colors duration-200" onClick={navigateToLogin}>
-                                <AvatarImage src="/images/avatar.png" />
-                                <AvatarFallback className="bg-[#3a1a2f] text-white font-bold">JB</AvatarFallback>
+                                <AvatarImage src={user?.imageUrl} />
+                                <AvatarFallback className="font-bold">JB</AvatarFallback>
                             </Avatar>
                         </Authenticated>
                         <Unauthenticated>
