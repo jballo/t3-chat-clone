@@ -291,19 +291,20 @@ export function ChatSidebar({ collapsed, onToggleCollapse, activeChat, onChatSel
             {/* Header */}
             <div className="p-4 flex items-center justify-between">
                 <div className={`flex items-center ${collapsed ? "justify-center" : ""}`}>
-                    <button
+                    <Button
+                        variant="ghost"
                         onClick={onToggleCollapse}
-                        className="w-8 h-8 mr-3 hover:bg-[#2a2a2a] rounded-lg flex items-center justify-center transition-colors duration-200"
+                        className="w-8 h-8 mr-3 rounded-lg flex items-center justify-center transition-colors duration-200"
                     >
                         <svg
                             viewBox="0 0 24 24"
                             fill="none"
                             xmlns="http://www.w3.org/2000/svg"
-                            className="w-5 h-5 text-gray-400 hover:text-white transition-colors"
+                            className="w-5 h-5 transition-colors"
                         >
                             <path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
                         </svg>
-                    </button>
+                    </Button>
                     {!collapsed && (
                         <div className="flex items-center">
                             <h1 className="text-xl font-bold flex items-center">
