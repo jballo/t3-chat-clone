@@ -205,12 +205,12 @@ export function ChatList({ collapsed, activeChat, onChatSelect, activeTab, setAc
                 </>
             ) : (
                 <div className="flex flex-col items-center gap-3 p-2">
-                    <button
+                    <Button
                         onClick={() => onChatSelect(null)}
-                        className={clsx(`w-12 h-12 rounded-xl flex items-center justify-center text-xs font-bold transition-colors duration-150 text-white bg-[#3a1a2f] hover:bg-[#4a2a3f]`)}
+                        className={clsx(`w-12 h-12 rounded-xl flex items-center justify-center text-xs font-bold transition-colors duration-150 text-white`)}
                     >
                         <Plus className="w-4 h-4" />
-                    </button>
+                    </Button>
                     <Separator className="border-[0.5px] border-[#3a3a3a]" />
 
                     <Button
@@ -218,7 +218,7 @@ export function ChatList({ collapsed, activeChat, onChatSelect, activeTab, setAc
                         className={clsx(
                             "w-12 h-12 rounded-xl flex items-center justify-center text-xs font-bold transition-colors duration-150",
                             activeTab === "myChats"
-                                ? "bg-[#3a1a2f] hover:bg-[#4a2a3f] text-white"
+                                ? "text-white"
                                 : "bg-[#1e1e1e] text-gray-400 hover:bg-[#2a2a2a] hover:text-white"
                         )}
                     >
@@ -229,7 +229,7 @@ export function ChatList({ collapsed, activeChat, onChatSelect, activeTab, setAc
                         className={clsx(
                             "w-12 h-12 rounded-xl flex items-center justify-center text-xs font-bold transition-colors duration-150",
                             activeTab === "shared"
-                                ? "bg-[#3a1a2f] hover:bg-[#4a2a3f] text-white"
+                                ? "text-white"
                                 : "bg-[#1e1e1e] text-gray-400 hover:bg-[#2a2a2a] hover:text-white"
                         )}
                     >
@@ -240,33 +240,33 @@ export function ChatList({ collapsed, activeChat, onChatSelect, activeTab, setAc
                     {(activeTab === "myChats") ? (
                         <>
                             {filteredConversations.slice(0, 8).map((conversation) => (
-                                <button
+                                <Button
                                     key={conversation._id}
                                     onClick={() => onChatSelect({ id: conversation._id, title: conversation.title })}
                                     className={`w-12 h-12 rounded-xl flex items-center justify-center text-xs font-bold transition-colors duration-150 ${activeChat?.id === conversation._id
-                                        ? "bg-[#2a1a2f] text-white"
-                                        : "bg-[#1e1e1e] text-gray-400 hover:bg-[#2a2a2a] hover:text-white"
+                                        ? "bg-sidebar-accent hover:bg-[#1e1e1e] text-sidebar-accent-foreground hover:text-white "
+                                        : "bg-[#1e1e1e] hover:bg-[#1e1e1e] text-gray-400 hover:text-white"
                                         }`}
                                     title={conversation.title}
                                 >
                                     {conversation.title.slice(0, 2).toUpperCase()}
-                                </button>
+                                </Button>
                             ))}
                         </>
                     ) : (
                         <>
                             {filteredSharedChats.slice(0, 8).map((conversation) => (
-                                <button
+                                <Button
                                     key={conversation._id}
                                     onClick={() => onChatSelect({ id: conversation._id, title: conversation.title })}
                                     className={`w-12 h-12 rounded-xl flex items-center justify-center text-xs font-bold transition-colors duration-150 ${activeChat?.id === conversation._id
-                                        ? "bg-[#2a1a2f] text-white"
-                                        : "bg-[#1e1e1e] text-gray-400 hover:bg-[#2a2a2a] hover:text-white"
+                                        ? "bg-sidebar-accent hover:bg-[#1e1e1e] text-sidebar-accent-foreground hover:text-white "
+                                        : "bg-[#1e1e1e] hover:bg-[#1e1e1e] text-gray-400 hover:text-white"
                                         }`}
                                     title={conversation.title}
                                 >
                                     {conversation.title.slice(0, 2).toUpperCase()}
-                                </button>
+                                </Button>
                             ))}
                         </>
                     )}
