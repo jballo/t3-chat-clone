@@ -689,7 +689,7 @@ export function ChatMain({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9 text-gray-400 hover:text-white hover:bg-[#2a2a2a] rounded-xl transition-colors duration-200"
+                className="h-9 w-9 rounded-xl transition-colors duration-200"
               >
                 <LogOut className="h-5 w-5" />
               </Button>
@@ -700,7 +700,7 @@ export function ChatMain({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9 text-gray-400 hover:text-white hover:bg-[#2a2a2a] rounded-xl transition-colors duration-200"
+                className="h-9 w-9 rounded-xl transition-colors duration-200"
               >
                 <LogIn className="h-5 w-5" />
               </Button>
@@ -746,37 +746,37 @@ export function ChatMain({
               <div className="grid grid-cols-2 gap-4 mt-8 max-w-2xl mx-auto">
                 <Button
                   variant="outline"
-                  className="flex items-center justify-start gap-3 h-16 bg-[#1e1e1e] border-[#3a3a3a] hover:bg-[#2a2a2a] text-white rounded-2xl transition-colors duration-200"
+                  className="flex items-center justify-start gap-3 h-16 rounded-2xl transition-colors duration-200"
                 >
-                  <div className="w-10 h-10 bg-[#3a1a2f] rounded-xl flex items-center justify-center">
-                    <Sparkles className="h-5 w-5 text-white" />
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center">
+                    <Sparkles className="h-5 w-5" />
                   </div>
                   <span className="font-medium">Create</span>
                 </Button>
                 <Button
                   variant="outline"
-                  className="flex items-center justify-start gap-3 h-16 bg-[#1e1e1e] border-[#3a3a3a] hover:bg-[#2a2a2a] text-white rounded-2xl transition-colors duration-200"
+                  className="flex items-center justify-start gap-3 h-16 rounded-2xl transition-colors duration-200"
                 >
-                  <div className="w-10 h-10 bg-[#3a1a2f] rounded-xl flex items-center justify-center">
-                    <HighlightIcon className="h-5 w-5 text-white" />
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center">
+                    <HighlightIcon className="h-5 w-5" />
                   </div>
                   <span className="font-medium">Explore</span>
                 </Button>
                 <Button
                   variant="outline"
-                  className="flex items-center justify-start gap-3 h-16 bg-[#1e1e1e] border-[#3a3a3a] hover:bg-[#2a2a2a] text-white rounded-2xl transition-colors duration-200"
+                  className="flex items-center justify-start gap-3 h-16 rounded-2xl transition-colors duration-200"
                 >
-                  <div className="w-10 h-10 bg-[#3a1a2f] rounded-xl flex items-center justify-center">
-                    <Code className="h-5 w-5 text-white" />
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center">
+                    <Code className="h-5 w-5" />
                   </div>
                   <span className="font-medium">Code</span>
                 </Button>
                 <Button
                   variant="outline"
-                  className="flex items-center justify-start gap-3 h-16 bg-[#1e1e1e] border-[#3a3a3a] hover:bg-[#2a2a2a] text-white rounded-2xl transition-colors duration-200"
+                  className="flex items-center justify-start gap-3 h-16 rounded-2xl transition-colors duration-200"
                 >
-                  <div className="w-10 h-10 bg-[#3a1a2f] rounded-xl flex items-center justify-center">
-                    <BookOpen className="h-5 w-5 text-white" />
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center">
+                    <BookOpen className="h-5 w-5" />
                   </div>
                   <span className="font-medium">Learn</span>
                 </Button>
